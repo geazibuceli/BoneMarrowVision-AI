@@ -1,0 +1,36 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e "ml[dev]"
+      - run: pip install -r backend/requirements-dev.txt
+      - run: ruff check backend/app
+      - run: cd backend && pytest tests
+  ml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install -e ".[dev]"
+        working-directory: ml
+      - run: ruff check src tests
+        working-directory: ml
+      - run: pytest tests
+        working-directory: ml
+  frontend:
+    runs-on: ubuntu-latest
+    defaults: {run: {working-directory: frontend}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

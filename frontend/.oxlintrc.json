@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": ["dist/**", "node_modules/**"],
+  "options": {
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "plugins": ["eslint", "typescript", "oxc", "unicorn", "react", "jsx-a11y"],
+  "rules": {
+    "jsx-a11y/no-noninteractive-tabindex": "off"
+  }
+}

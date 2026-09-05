@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bone_marrow_vision
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d bone_marrow_vision"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      APP_ENVIRONMENT: production
+      PROJECT_ROOT: /app
+      DATABASE_URL: postgresql+psycopg://app:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/bone_marrow_vision
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      ADMIN_BOOTSTRAP_TOKEN: ${ADMIN_BOOTSTRAP_TOKEN:?Set ADMIN_BOOTSTRAP_TOKEN in .env}
+      UPLOAD_DIR: /app/data/uploads
+      MODEL_DIR: /app/models
+      CONFIG_DIR: /app/ml/configs
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-10485760}
+      MAX_IMAGE_PIXELS: ${MAX_IMAGE_PIXELS:-25000000}
+      MAX_CHECKPOINT_BYTES: ${MAX_CHECKPOINT_BYTES:-2147483648}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      MPLCONFIGDIR: /tmp/matplotlib
+    volumes:
+      - uploads_data:/app/data/uploads
+      - ./models:/app/models:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads_data:

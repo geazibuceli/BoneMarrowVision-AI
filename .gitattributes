@@ -1,0 +1,15 @@
+* text=auto
+
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pt binary
+*.pth binary
+*.ckpt binary

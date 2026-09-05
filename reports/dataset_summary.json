@@ -1,0 +1,79 @@
+{
+  "report_status": "historical_pre_strict-validation",
+  "source_dataset": "TCIA:10.7937/TCIA.AXH3-T579",
+  "data_directory": "external:TCIA/Bone-Marrow-Cytomorphology_MLL_Helmholtz_Fraunhofer_v1",
+  "image_count": 171374,
+  "class_counts": {
+    "ABE": 8,
+    "ART": 19630,
+    "BAS": 441,
+    "BLA": 11973,
+    "EBO": 27395,
+    "EOS": 5883,
+    "FGC": 47,
+    "HAC": 409,
+    "KSC": 42,
+    "LYI": 65,
+    "LYT": 26242,
+    "MMZ": 3055,
+    "MON": 4040,
+    "MYB": 6557,
+    "NGB": 9968,
+    "NGS": 29424,
+    "NIF": 3538,
+    "OTH": 294,
+    "PEB": 2740,
+    "PLM": 7629,
+    "PMO": 11994
+  },
+  "file_extensions": {
+    ".aspera-ckpt": 32,
+    ".jpg": 171374,
+    ".partial": 32,
+    ".sums": 1
+  },
+  "metadata_files": [],
+  "unreadable_images": [
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18269.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18270.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18271.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18272.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18273.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18274.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18275.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18276.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18277.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18278.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18279.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18280.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18281.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18282.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18283.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18284.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18285.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18286.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18287.jpg",
+    "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/EBO/18001-19000/EBO_18288.jpg"
+  ],
+  "duplicate_groups": [
+    [
+      "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/MON/0001-1000/MON_00437.jpg",
+      "Bone-Marrow-Cytomorphology/jpgs/BM_cytomorphology_data/PMO/7001-8000/PMO_07208.jpg"
+    ]
+  ],
+  "possible_group_leakage": {
+    "status": "metadata_not_found",
+    "signals": [
+      "patient",
+      "slide",
+      "source",
+      "case"
+    ],
+    "assumption": "Folder names are treated as labels only until metadata is inspected."
+  },
+  "assumptions": [
+    "Image labels are inferred from the class directory under BM_cytomorphology_data, or the immediate parent for simpler layouts.",
+    "Group-aware splitting requires patient, slide, or source identifiers in a metadata file.",
+    "No clinical performance or diagnostic capability is inferred from this inspection."
+  ]
+}

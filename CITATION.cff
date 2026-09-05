@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "BoneMarrowVision AI"
+message: "If you use this software, please cite the software and the TCIA dataset separately."
+type: software
+version: 0.1.0
+date-released: 2026-08-28
+license: MIT
+authors:
+  - family-names: "Bucéli da Silva"
+    given-names: "Geazi Junior"
+keywords:
+  - bone marrow cytomorphology
+  - deep learning
+  - image classification
+  - explainable AI
+  - EfficientNet
+references:
+  - type: dataset
+    authors:
+      - family-names: Matek
+        given-names: Christian
+      - family-names: Krappe
+        given-names: Simon
+      - family-names: Münzenmayer
+        given-names: Christoph
+      - family-names: Haferlach
+        given-names: Torsten
+      - family-names: Marr
+        given-names: Carsten
+    title: "An Expert-Annotated Dataset of Bone Marrow Cytology in Hematologic Malignancies"
+    year: 2021
+    doi: 10.7937/TCIA.AXH3-T579
+    publisher: "The Cancer Imaging Archive"
+    license: CC-BY-4.0

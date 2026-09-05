@@ -1,0 +1,1012 @@
+[
+  {
+    "true_class": "NGS",
+    "predicted_class": "NGB",
+    "count": 312
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "NGS",
+    "count": 212
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "MYB",
+    "count": 173
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "PMO",
+    "count": 163
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "LYT",
+    "count": 108
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "MMZ",
+    "count": 100
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "NIF",
+    "count": 95
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "NGB",
+    "count": 85
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "LYT",
+    "count": 77
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "BLA",
+    "count": 73
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "BLA",
+    "count": 72
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "PEB",
+    "count": 70
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "LYT",
+    "count": 68
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "ART",
+    "count": 60
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "ART",
+    "count": 57
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "BLA",
+    "count": 56
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "EBO",
+    "count": 54
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "MMZ",
+    "count": 54
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "LYT",
+    "count": 53
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "MYB",
+    "count": 52
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "NGS",
+    "count": 48
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "ART",
+    "count": 44
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "PLM",
+    "count": 43
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "MON",
+    "count": 38
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "NIF",
+    "count": 37
+  },
+  {
+    "true_class": "PEB",
+    "predicted_class": "BLA",
+    "count": 36
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "NIF",
+    "count": 33
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "LYT",
+    "count": 33
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "BLA",
+    "count": 32
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "PEB",
+    "count": 32
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "PMO",
+    "count": 32
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "PLM",
+    "count": 31
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "PMO",
+    "count": 30
+  },
+  {
+    "true_class": "PEB",
+    "predicted_class": "EBO",
+    "count": 30
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "EBO",
+    "count": 28
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "LYT",
+    "count": 25
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "EBO",
+    "count": 25
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "ART",
+    "count": 24
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "MMZ",
+    "count": 24
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "MON",
+    "count": 23
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "BLA",
+    "count": 22
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "ART",
+    "count": 20
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "MON",
+    "count": 20
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "LYT",
+    "count": 20
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "NIF",
+    "count": 18
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "NGB",
+    "count": 17
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "NIF",
+    "count": 17
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "MMZ",
+    "count": 16
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "MMZ",
+    "count": 16
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "MON",
+    "count": 16
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "MON",
+    "count": 16
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "PLM",
+    "count": 15
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "BLA",
+    "count": 15
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "NGS",
+    "count": 15
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "MYB",
+    "count": 14
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "NGB",
+    "count": 14
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "NGS",
+    "count": 14
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "HAC",
+    "count": 13
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "ART",
+    "count": 13
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "MYB",
+    "count": 12
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "MYB",
+    "count": 12
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "ART",
+    "count": 12
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "PMO",
+    "count": 11
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "LYT",
+    "count": 11
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "MON",
+    "count": 11
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "EBO",
+    "count": 11
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "PMO",
+    "count": 11
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "NIF",
+    "count": 11
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "PEB",
+    "count": 11
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "PMO",
+    "count": 10
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "EBO",
+    "count": 10
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "MON",
+    "count": 10
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "ART",
+    "count": 10
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "MON",
+    "count": 10
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "MMZ",
+    "count": 9
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "NGS",
+    "count": 9
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "PLM",
+    "count": 9
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "EOS",
+    "count": 8
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "MON",
+    "count": 8
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "MYB",
+    "count": 8
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "MYB",
+    "count": 8
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "BAS",
+    "count": 8
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "EBO",
+    "count": 8
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "NGB",
+    "count": 8
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "NIF",
+    "count": 8
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "NGB",
+    "count": 7
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "NGS",
+    "count": 7
+  },
+  {
+    "true_class": "HAC",
+    "predicted_class": "LYT",
+    "count": 7
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "NIF",
+    "count": 7
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "ART",
+    "count": 7
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "NGS",
+    "count": 7
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "EBO",
+    "count": 7
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "NGB",
+    "count": 7
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "NIF",
+    "count": 7
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "ART",
+    "count": 7
+  },
+  {
+    "true_class": "PEB",
+    "predicted_class": "LYT",
+    "count": 7
+  },
+  {
+    "true_class": "PEB",
+    "predicted_class": "PMO",
+    "count": 7
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "PLM",
+    "count": 7
+  },
+  {
+    "true_class": "BAS",
+    "predicted_class": "NGS",
+    "count": 6
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "MYB",
+    "count": 6
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "MMZ",
+    "count": 6
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "NGS",
+    "count": 6
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "LYT",
+    "count": 6
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "MYB",
+    "count": 6
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "EOS",
+    "count": 6
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "MMZ",
+    "count": 6
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "EBO",
+    "count": 6
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "OTH",
+    "count": 5
+  },
+  {
+    "true_class": "BAS",
+    "predicted_class": "EBO",
+    "count": 5
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "MON",
+    "count": 5
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "BAS",
+    "count": 5
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "EBO",
+    "count": 5
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "EBO",
+    "count": 5
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "EBO",
+    "count": 5
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "BLA",
+    "count": 5
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "ART",
+    "count": 5
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "LYT",
+    "count": 5
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "HAC",
+    "count": 4
+  },
+  {
+    "true_class": "BAS",
+    "predicted_class": "EOS",
+    "count": 4
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "NGB",
+    "count": 4
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "NGS",
+    "count": 4
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "PMO",
+    "count": 4
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "PEB",
+    "count": 4
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "PMO",
+    "count": 4
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "NIF",
+    "count": 4
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "BLA",
+    "count": 4
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "NIF",
+    "count": 4
+  },
+  {
+    "true_class": "PEB",
+    "predicted_class": "NIF",
+    "count": 4
+  },
+  {
+    "true_class": "BAS",
+    "predicted_class": "ART",
+    "count": 3
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "BAS",
+    "count": 3
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "PLM",
+    "count": 3
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "PMO",
+    "count": 3
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "ART",
+    "count": 3
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "MMZ",
+    "count": 3
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "NIF",
+    "count": 3
+  },
+  {
+    "true_class": "HAC",
+    "predicted_class": "MON",
+    "count": 3
+  },
+  {
+    "true_class": "LYI",
+    "predicted_class": "BLA",
+    "count": 3
+  },
+  {
+    "true_class": "LYI",
+    "predicted_class": "LYT",
+    "count": 3
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "PLM",
+    "count": 3
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "PEB",
+    "count": 3
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "PLM",
+    "count": 3
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "MYB",
+    "count": 3
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "BLA",
+    "count": 3
+  },
+  {
+    "true_class": "PEB",
+    "predicted_class": "MON",
+    "count": 3
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "PMO",
+    "count": 3
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "PEB",
+    "count": 2
+  },
+  {
+    "true_class": "BAS",
+    "predicted_class": "BLA",
+    "count": 2
+  },
+  {
+    "true_class": "BAS",
+    "predicted_class": "LYT",
+    "count": 2
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "EOS",
+    "count": 2
+  },
+  {
+    "true_class": "EBO",
+    "predicted_class": "MMZ",
+    "count": 2
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "MON",
+    "count": 2
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "MYB",
+    "count": 2
+  },
+  {
+    "true_class": "HAC",
+    "predicted_class": "NIF",
+    "count": 2
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "EOS",
+    "count": 2
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "EOS",
+    "count": 2
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "BAS",
+    "count": 2
+  },
+  {
+    "true_class": "MYB",
+    "predicted_class": "EOS",
+    "count": 2
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "PMO",
+    "count": 2
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "MYB",
+    "count": 2
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "EOS",
+    "count": 2
+  },
+  {
+    "true_class": "PMO",
+    "predicted_class": "NGS",
+    "count": 2
+  },
+  {
+    "true_class": "ABE",
+    "predicted_class": "EOS",
+    "count": 1
+  },
+  {
+    "true_class": "ART",
+    "predicted_class": "BAS",
+    "count": 1
+  },
+  {
+    "true_class": "BAS",
+    "predicted_class": "NGB",
+    "count": 1
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "MMZ",
+    "count": 1
+  },
+  {
+    "true_class": "BLA",
+    "predicted_class": "NGS",
+    "count": 1
+  },
+  {
+    "true_class": "EOS",
+    "predicted_class": "PLM",
+    "count": 1
+  },
+  {
+    "true_class": "FGC",
+    "predicted_class": "ART",
+    "count": 1
+  },
+  {
+    "true_class": "FGC",
+    "predicted_class": "BLA",
+    "count": 1
+  },
+  {
+    "true_class": "LYI",
+    "predicted_class": "ART",
+    "count": 1
+  },
+  {
+    "true_class": "LYI",
+    "predicted_class": "MON",
+    "count": 1
+  },
+  {
+    "true_class": "LYI",
+    "predicted_class": "PEB",
+    "count": 1
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "BAS",
+    "count": 1
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "LYI",
+    "count": 1
+  },
+  {
+    "true_class": "LYT",
+    "predicted_class": "NGB",
+    "count": 1
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "ART",
+    "count": 1
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "BLA",
+    "count": 1
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "LYT",
+    "count": 1
+  },
+  {
+    "true_class": "MMZ",
+    "predicted_class": "PLM",
+    "count": 1
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "BAS",
+    "count": 1
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "HAC",
+    "count": 1
+  },
+  {
+    "true_class": "MON",
+    "predicted_class": "PEB",
+    "count": 1
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "BLA",
+    "count": 1
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "EOS",
+    "count": 1
+  },
+  {
+    "true_class": "NGB",
+    "predicted_class": "PMO",
+    "count": 1
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "BLA",
+    "count": 1
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "HAC",
+    "count": 1
+  },
+  {
+    "true_class": "NGS",
+    "predicted_class": "PEB",
+    "count": 1
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "HAC",
+    "count": 1
+  },
+  {
+    "true_class": "NIF",
+    "predicted_class": "PEB",
+    "count": 1
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "EOS",
+    "count": 1
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "LYT",
+    "count": 1
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "MYB",
+    "count": 1
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "NGS",
+    "count": 1
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "NIF",
+    "count": 1
+  },
+  {
+    "true_class": "OTH",
+    "predicted_class": "PMO",
+    "count": 1
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "EOS",
+    "count": 1
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "MMZ",
+    "count": 1
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "MON",
+    "count": 1
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "NGB",
+    "count": 1
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "NGS",
+    "count": 1
+  },
+  {
+    "true_class": "PLM",
+    "predicted_class": "PEB",
+    "count": 1
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "format_version": 1,
+  "artifacts": {
+    "confusion_matrix_csv": {
+      "path": "reports/metrics/test_report_gpu.csv",
+      "sha256": "37326b5281154bb0b8e5b52035c20b3c56ddd39d5121a7d19b4e1cc4bd94bef9"
+    },
+    "confusion_matrix_image": {
+      "path": "reports/metrics/test_report_gpu.png",
+      "sha256": "a9d76f40285bdef3dd60b9ba478a12f82c453d602cb5864dfbfe4b07c8c83b70"
+    },
+    "markdown_report": {
+      "path": "reports/metrics/test_report_gpu.md",
+      "sha256": "68f44d4490d1d380c95fa28d2216e951a0dacf98e8e56587d5e5ddeda3caf63c"
+    },
+    "metrics": {
+      "path": "reports/metrics/test_report_gpu.json",
+      "sha256": "8fbba327c02b3d1831d625ca963248a3a8133a00370b2aae3d20f423c2e7a2e0"
+    }
+  },
+  "inputs": {
+    "checkpoint": {
+      "path": "models/best_model_gpu.pt",
+      "sha256": "646fa0c16abbc5a21a4ac685153a2549bc3ecb675727ce628e47006a007be2fc"
+    },
+    "test_split": {
+      "path": "data/processed/test.json",
+      "sha256": "f84457c9f582731b288f1100705c57d87bf7f5db92524b63067da0989f27a264"
+    }
+  }
+}

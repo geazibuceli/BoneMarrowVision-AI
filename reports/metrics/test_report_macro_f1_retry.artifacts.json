@@ -1,0 +1,31 @@
+{
+  "format_version": 1,
+  "artifacts": {
+    "confusion_matrix_csv": {
+      "path": "reports/metrics/test_report_macro_f1_retry.csv",
+      "sha256": "6ed8114d5c3bad6916bad991c092a1ac26e4c75ce93125f1fd1ab2c05e17c454"
+    },
+    "confusion_matrix_image": {
+      "path": "reports/metrics/test_report_macro_f1_retry.png",
+      "sha256": "1b4d69620823f77dec1d0839585897b998138498f8438c39f5215588bf553ca8"
+    },
+    "markdown_report": {
+      "path": "reports/metrics/test_report_macro_f1_retry.md",
+      "sha256": "e224393e0123c0a59e0ced812e36cf7874c5974bc822a1c1f648b7cd885b9b86"
+    },
+    "metrics": {
+      "path": "reports/metrics/test_report_macro_f1_retry.json",
+      "sha256": "f9700e33f8154e13557f982f348beaf57dd72ebf2b58891eba25ab55ebbde801"
+    }
+  },
+  "inputs": {
+    "checkpoint": {
+      "path": "models/best_model_macro_f1_retry.pt",
+      "sha256": "60cb25c0a0b2a343bbdad7ede7950032a55e269d8ccfdcbebd9ef0b5cf0a751e"
+    },
+    "test_split": {
+      "path": "data/processed/test.json",
+      "sha256": "f84457c9f582731b288f1100705c57d87bf7f5db92524b63067da0989f27a264"
+    }
+  }
+}

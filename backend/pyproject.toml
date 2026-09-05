@@ -1,0 +1,31 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["B008"] # FastAPI intentionally evaluates Depends/File while defining routes.
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+follow_imports_for_stubs = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "bone_marrow_vision",
+    "bone_marrow_vision.*",
+    "jose",
+    "jose.*",
+]
+follow_imports = "skip"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
