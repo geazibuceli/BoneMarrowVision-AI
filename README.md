@@ -147,6 +147,8 @@ The historical EfficientNet-B0 run used 171,353 valid images across 21 classes, 
 | Macro F1 | 73.16% |
 | Weighted F1 | 86.20% |
 
+The relatively lower macro-level metrics must be interpreted in light of the dataset limitations. The model was trained across all 21 class folders, but the historical download was incomplete: some class folders had missing or unreadable images, and the available image counts were uneven across classes. Because macro metrics give each class the same weight, underrepresented categories have a strong effect on macro precision, macro recall, and macro F1, while accuracy and weighted F1 remain more influenced by the better-represented classes. These limitations help explain the gap between the macro F1 and weighted F1 results; they do not establish that missing images were the sole cause of the observed performance.
+
 The best recorded validation macro F1 was 72.14% at epoch 30. These are research results, not clinical-performance claims. See [MODEL_CARD.md](MODEL_CARD.md), [DATASET_CARD.md](DATASET_CARD.md), and [reports/README.md](reports/README.md) for their scope and provenance limitations.
 
 ## Containerized local validation
