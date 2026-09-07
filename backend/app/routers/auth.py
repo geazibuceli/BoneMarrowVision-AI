@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.audit import add_audit_event
 from app.core.config import settings
+from app.core.rate_limit import enforce_auth_rate_limit
 from app.database import get_db
 from app.models import User
 from app.schemas import RegisterRequest, TokenResponse, UserResponse
@@ -66,7 +67,11 @@ def _registration_role(payload: RegisterRequest, db: Session) -> str:
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)
-def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+def register(
+    payload: RegisterRequest,
+    db: Session = Depends(get_db),
+    _rate_limit: None = Depends(enforce_auth_rate_limit),
+):
     if db.scalar(select(User).where(User.email == payload.email)):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered")
     role = _registration_role(payload, db)
@@ -101,7 +106,11 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(
+    form: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+    _rate_limit: None = Depends(enforce_auth_rate_limit),
+):
     normalized_email = form.username.strip().lower()
     user = db.scalar(select(User).where(User.email == normalized_email)) if len(normalized_email) <= 320 else None
     if user is None:

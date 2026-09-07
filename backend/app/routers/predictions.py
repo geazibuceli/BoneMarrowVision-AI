@@ -16,6 +16,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.audit import add_audit_event
 from app.core.config import settings
+from app.core.rate_limit import enforce_prediction_rate_limit
 from app.database import get_db
 from app.inference import predict
 from app.models import MLModel, Prediction, User
@@ -68,6 +69,7 @@ async def create_prediction(
     file: UploadFile = File(...),
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
+    _rate_limit: None = Depends(enforce_prediction_rate_limit),
 ):
     try:
         extension = Path(file.filename or "").suffix.lower()

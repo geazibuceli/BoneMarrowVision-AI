@@ -12,4 +12,4 @@ Security fixes are applied to the current default branch. No older release line 
 
 ## Deployment boundary
 
-The provided Compose stack is for local, production-like validation. Before any networked deployment, add TLS, trusted-proxy configuration, request-rate limiting, centralized secret management, backups, monitoring, an upload-retention policy, and a formal privacy/LGPD assessment. Keep the backend port private, rotate the JWT and administrator bootstrap secrets, and never upload identifiable patient information.
+The provided Compose stack is for local, production-like validation. Before any networked deployment, add TLS, trusted-proxy configuration, distributed request-rate limiting, centralized secret management, backups, monitoring, an upload-retention policy, and a formal privacy/LGPD assessment. The API includes a process-local rate limiter for development and single-instance deployments; use a gateway or shared store such as Redis when running multiple replicas. Keep the backend port private, rotate the JWT and administrator bootstrap secrets, and never upload identifiable patient information.

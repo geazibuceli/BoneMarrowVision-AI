@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     max_upload_bytes: int = Field(default=10 * 1024 * 1024, ge=1, le=100 * 1024 * 1024)
     max_image_pixels: int = Field(default=25_000_000, ge=1, le=100_000_000)
     max_checkpoint_bytes: int = Field(default=2 * 1024 * 1024 * 1024, ge=1)
+    auth_rate_limit: int = Field(default=30, ge=1, le=10_000)
+    auth_rate_window_seconds: int = Field(default=60, ge=1, le=3_600)
+    prediction_rate_limit: int = Field(default=30, ge=1, le=10_000)
+    prediction_rate_window_seconds: int = Field(default=60, ge=1, le=3_600)
+    gradcam_retention_days: int = Field(default=30, ge=1, le=3_650)
+    inference_temp_retention_hours: int = Field(default=24, ge=1, le=8_760)
     cors_origins: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(
