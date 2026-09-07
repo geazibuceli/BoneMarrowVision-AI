@@ -1,3 +1,4 @@
+import os
 import shutil
 from collections.abc import Generator
 from pathlib import Path
@@ -5,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -29,14 +30,38 @@ def workspace_tmp_path() -> Generator[Path]:
 
 @pytest.fixture
 def session_factory() -> Generator[sessionmaker[Session]]:
+    database_url = os.environ.get("TEST_DATABASE_URL", "sqlite://")
+    is_sqlite = database_url.startswith("sqlite")
     engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
+        database_url,
+        connect_args={"check_same_thread": False} if is_sqlite else {},
+        poolclass=StaticPool if is_sqlite else None,
     )
-    Base.metadata.create_all(engine)
+    if is_sqlite:
+        Base.metadata.drop_all(engine)
+        Base.metadata.create_all(engine)
+    else:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "TRUNCATE TABLE audit_logs, predictions, experiments, "
+                    "ml_models, users RESTART IDENTITY CASCADE"
+                )
+            )
     factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
-    yield factory
+    try:
+        yield factory
+    finally:
+        if not is_sqlite:
+            with engine.begin() as connection:
+                connection.execute(
+                    text(
+                        "TRUNCATE TABLE audit_logs, predictions, experiments, "
+                        "ml_models, users RESTART IDENTITY CASCADE"
+                    )
+                )
+        else:
+            Base.metadata.drop_all(engine)
     engine.dispose()
 
 
