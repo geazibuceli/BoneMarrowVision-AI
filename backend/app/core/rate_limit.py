@@ -41,6 +41,8 @@ rate_limiter = InMemoryRateLimiter()
 
 def _client_key(request: Request, scope: str) -> str:
     client_host = request.client.host if request.client else "unknown"
+    if settings.trust_proxy_headers:
+        client_host = request.headers.get("x-real-ip", client_host)
     return f"{scope}:{client_host}"
 
 
