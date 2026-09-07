@@ -31,14 +31,20 @@ LOGGER = logging.getLogger(__name__)
 
 
 def _prediction_response(prediction: Prediction) -> dict:
+    gradcam_image_path = None
+    if prediction.gradcam_image_path:
+        try:
+            _stored_gradcam_path(prediction)
+        except HTTPException:
+            pass
+        else:
+            gradcam_image_path = f"/api/v1/predictions/{prediction.id}/gradcam"
     return {
         "id": prediction.id,
         "predicted_class": prediction.predicted_class,
         "confidence": prediction.confidence,
         "top_predictions_json": prediction.top_predictions_json,
-        "gradcam_image_path": (
-            f"/api/v1/predictions/{prediction.id}/gradcam" if prediction.gradcam_image_path else None
-        ),
+        "gradcam_image_path": gradcam_image_path,
         "low_confidence": prediction.low_confidence,
         "created_at": prediction.created_at,
     }

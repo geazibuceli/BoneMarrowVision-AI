@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.models import Prediction
+from app.routers import predictions as prediction_router
 
 
 def _create_user_and_token(client, email: str) -> tuple[int, str]:
@@ -58,3 +59,13 @@ def test_gradcam_is_private_and_scoped_to_prediction_owner(
     assert response.content == b"private-gradcam"
     assert response.headers["cache-control"] == "private, no-store"
     assert response.headers["x-content-type-options"] == "nosniff"
+
+
+def test_expired_gradcam_is_omitted_from_prediction_response(workspace_tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "project_root", workspace_tmp_path)
+    monkeypatch.setattr(settings, "upload_dir", Path("uploads"))
+    prediction = Prediction(id=7, gradcam_image_path="uploads/gradcam/missing.png")
+
+    response = prediction_router._prediction_response(prediction)
+
+    assert response["gradcam_image_path"] is None
