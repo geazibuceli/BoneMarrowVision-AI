@@ -2,8 +2,8 @@ cff-version: 1.2.0
 title: "BoneMarrowVision AI"
 message: "If you use this software, please cite the software and the TCIA dataset separately."
 type: software
-version: 0.1.0
-date-released: 2026-08-28
+version: 0.2.0
+date-released: 2026-09-07
 license: MIT
 authors:
   - family-names: "Bucéli da Silva"
