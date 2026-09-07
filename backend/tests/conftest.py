@@ -1,6 +1,6 @@
+import shutil
 from collections.abc import Generator
 from pathlib import Path
-import shutil
 from uuid import uuid4
 
 import pytest
@@ -9,9 +9,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core.config import BACKEND_ROOT
 from app.database import Base, get_db
 from app.main import app
-from app.core.config import BACKEND_ROOT
 
 
 @pytest.fixture

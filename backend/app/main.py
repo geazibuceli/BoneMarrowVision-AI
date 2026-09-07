@@ -1,12 +1,28 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.retention import cleanup_expired_artifacts
 from app.routers import analytics, auth, experiments, health, models, predictions
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    cleanup_expired_artifacts(
+        upload_dir=settings.resolve_path(settings.upload_dir),
+        inference_temp_dir=settings.resolve_path(settings.inference_temp_dir),
+        gradcam_retention_days=settings.gradcam_retention_days,
+        temp_retention_hours=settings.inference_temp_retention_hours,
+    )
+    yield
+
 
 app = FastAPI(
     title=settings.app_name,
     description="Research and educational bone marrow image classification API.",
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,
