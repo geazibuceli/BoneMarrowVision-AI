@@ -23,6 +23,8 @@ Thank you for contributing to BoneMarrowVision AI. This is a research and educat
 make check
 ```
 
+When changing upload, inference, rate-limit, or retention behavior, include focused backend tests for authorization, cleanup, and failure paths. Do not use real patient data to validate these workflows.
+
 ## Model and dataset changes
 
 Changes affecting model behavior must document the dataset source and license, split strategy, split-manifest hash, random seed, deterministic settings, configuration, checkpoint hash, hardware, training duration, and evaluation scope. Report accuracy together with class-balanced metrics such as macro F1, and describe limitations for underrepresented classes. Never claim clinical performance without appropriate external validation and expert review.

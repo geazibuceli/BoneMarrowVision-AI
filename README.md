@@ -12,6 +12,7 @@ The application consists of:
 
 - a React web interface with authenticated research workspaces;
 - a FastAPI API with Argon2 password hashing, signed JWT sessions, role-based model administration, validated uploads, and user-scoped predictions;
+- process-local rate limits for authentication and inference, plus automatic retention of generated Grad-CAM and temporary inference files;
 - PostgreSQL in Compose or SQLite for local development, managed with Alembic migrations;
 - a PyTorch training/evaluation pipeline with deterministic controls, verified split manifests, checkpoint provenance, aggregate reports, and Grad-CAM;
 - authenticated Grad-CAM delivery; uploaded and generated images are not exposed through a public static directory.
@@ -50,6 +51,8 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
 For a stable local session, set `JWT_SECRET` even though development mode can generate an ephemeral one. Never commit `.env`.
+
+The API limits authentication and inference requests using `AUTH_RATE_LIMIT`, `AUTH_RATE_WINDOW_SECONDS`, `PREDICTION_RATE_LIMIT`, and `PREDICTION_RATE_WINDOW_SECONDS`. Generated Grad-CAM files are retained for `GRADCAM_RETENTION_DAYS` days, while stale temporary inference inputs are removed after `INFERENCE_TEMP_RETENTION_HOURS`. These limits are process-local; deployments with multiple backend replicas must enforce distributed rate limiting at the gateway or with a shared store such as Redis.
 
 Apply the database migration and start the API:
 
