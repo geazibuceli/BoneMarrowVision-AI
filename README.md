@@ -52,7 +52,7 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 For a stable local session, set `JWT_SECRET` even though development mode can generate an ephemeral one. Never commit `.env`.
 
-The API limits authentication and inference requests using `AUTH_RATE_LIMIT`, `AUTH_RATE_WINDOW_SECONDS`, `PREDICTION_RATE_LIMIT`, and `PREDICTION_RATE_WINDOW_SECONDS`. Generated Grad-CAM files are retained for `GRADCAM_RETENTION_DAYS` days, while stale temporary inference inputs are removed after `INFERENCE_TEMP_RETENTION_HOURS`. These limits are process-local; deployments with multiple backend replicas must enforce distributed rate limiting at the gateway or with a shared store such as Redis.
+The API limits authentication and inference requests using `AUTH_RATE_LIMIT`, `AUTH_RATE_WINDOW_SECONDS`, `PREDICTION_RATE_LIMIT`, and `PREDICTION_RATE_WINDOW_SECONDS`. In the Compose stack, `TRUST_PROXY_HEADERS=true` makes the limiter use the client address forwarded by the bundled Nginx proxy; keep it false when the API is exposed directly or behind an untrusted proxy. Generated Grad-CAM files are retained for `GRADCAM_RETENTION_DAYS` days, while stale temporary inference inputs are removed after `INFERENCE_TEMP_RETENTION_HOURS`. These limits are process-local; deployments with multiple backend replicas must enforce distributed rate limiting at the gateway or with a shared store such as Redis.
 
 Apply the database migration and start the API:
 
@@ -164,6 +164,8 @@ docker compose up --build
 ```
 
 The frontend is exposed on `http://localhost`; the backend debug port is bound only to `127.0.0.1:8000`. The backend container runs as a non-root user on a read-only filesystem, applies Alembic migrations at startup, stores uploads in a named volume, and mounts model checkpoints read-only.
+
+The backend image installs the CPU PyTorch build. GPU dependencies belong in the training environment, not in the API container.
 
 This is a production-like local stack, not a public production deployment. Read [SECURITY.md](SECURITY.md) before exposing any service.
 
