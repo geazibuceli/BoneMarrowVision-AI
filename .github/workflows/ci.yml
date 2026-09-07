@@ -3,14 +3,31 @@ on: [push, pull_request]
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: bone_marrow_vision
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: ci-postgres-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app -d bone_marrow_vision"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
       - run: pip install -e "ml[dev]"
       - run: pip install -r backend/requirements-dev.txt
-      - run: ruff check backend/app
+      - run: ruff check backend/app backend/tests backend/alembic
+      - run: DATABASE_URL=postgresql+psycopg://app:ci-postgres-password@localhost:5432/bone_marrow_vision alembic upgrade head
+        working-directory: backend
       - run: cd backend && pytest tests
+      - run: POSTGRES_PASSWORD=ci-postgres-password JWT_SECRET=ci-jwt-secret-012345678901234567890123 ADMIN_BOOTSTRAP_TOKEN=ci-admin-token-012345678901234567890123 docker compose config --quiet
   ml:
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +36,7 @@ jobs:
         with: {python-version: '3.11'}
       - run: pip install -e ".[dev]"
         working-directory: ml
-      - run: ruff check src tests
+      - run: ruff check src scripts tests
         working-directory: ml
       - run: pytest tests
         working-directory: ml
@@ -29,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: '22'}
+        with: {node-version: '22.23.2'}
       - run: npm ci
       - run: npm run lint
       - run: npm test

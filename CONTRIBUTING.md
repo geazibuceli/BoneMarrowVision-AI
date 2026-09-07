@@ -12,7 +12,7 @@ Thank you for contributing to BoneMarrowVision AI. This is a research and educat
 
 ## Development workflow
 
-1. Create a Python 3.11 environment and install the ML package with `python -m pip install -e "ml[dev]"`.
+1. Use Python 3.11 and Node.js 22.23.2 or newer. Create a Python environment and install the ML package with `python -m pip install -e "ml[dev]"`.
 2. Install backend development dependencies with `python -m pip install -r backend/requirements-dev.txt`.
 3. Install frontend dependencies with `cd frontend && npm install`.
 4. Start the local stack with `docker compose up --build` when testing API, database, model, or Grad-CAM integration.

@@ -25,7 +25,7 @@ The recorded 40-epoch experiment is historical: it predates the current strict s
 ## Requirements
 
 - Python 3.11
-- Node.js 22.6 or newer
+- Node.js 22.23.2 or newer
 - Docker with Compose, only for the containerized stack
 - a PyTorch build compatible with the host GPU driver, only when CUDA training is required
 
