@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "oxlint --deny-warnings --react-plugin --jsx-a11y-plugin src tests vite.config.ts && tsc --noEmit",
-    "test": "node --experimental-strip-types --test --test-isolation=none"
+    "test": "node --experimental-strip-types --test --experimental-test-isolation=none"
   },
   "dependencies": {
     "react": "19.2.8",
