@@ -21,7 +21,7 @@ The application consists of:
 
 The repository includes code, tests, configuration, and selected de-identified reports. Raw TCIA images, uploads, processed splits, and model checkpoints are local artifacts and are ignored by Git.
 
-The recorded 40-epoch experiment is historical: it predates the current strict split-manifest and artifact-provenance implementation. Its aggregate metrics are retained for the TCC, but a new end-to-end run through the current pipeline is required before claiming complete computational reproducibility. Patient-level independence also cannot be established from the downloaded file layout because no patient, slide, case, or source mapping was available to this project.
+The recorded 40-epoch experiment is historical: it predates the current strict split-manifest and artifact-provenance implementation. Its aggregate metrics are retained for reference, but a new end-to-end run through the current pipeline is required before claiming complete computational reproducibility. Patient-level independence also cannot be established from the downloaded file layout because no patient, slide, case, or source mapping was available to this project.
 
 ## Requirements
 

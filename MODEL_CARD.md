@@ -17,7 +17,7 @@ The recorded experiment used 171,353 valid images across 21 classes, ImageNet-pr
 | Macro F1 | 73.16% |
 | Weighted F1 | 86.20% |
 
-The best recorded validation macro F1 was 72.14% at epoch 30. The checkpoint is a local generated artifact and must not be committed. Selected, de-identified aggregate analysis outputs are retained under `reports/analysis_40ep/` for the TCC.
+The best recorded validation macro F1 was 72.14% at epoch 30. The checkpoint is a local generated artifact and must not be committed. Selected, de-identified aggregate analysis outputs are retained under `reports/analysis_40ep/` for reference.
 
 This run predates the current verified split manifests, portable provenance records, and strict duplicate policy. The recorded metrics are therefore historical evidence rather than proof of an end-to-end run with the current code. A new training and held-out evaluation run is required to make that reproducibility claim.
 
