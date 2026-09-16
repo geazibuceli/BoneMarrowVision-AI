@@ -204,8 +204,13 @@ export function uploadPrediction(file: File, token: string): Promise<Prediction>
   );
 }
 
-export function getPredictions(token: string): Promise<Prediction[]> {
-  return request<Prediction[]>('/predictions', { headers: authorization(token) }, 'Could not load prediction history');
+export function getPredictions(token: string, limit = 100, offset = 0): Promise<Prediction[]> {
+  const query = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  return request<Prediction[]>(`/predictions?${query}`, { headers: authorization(token) }, 'Could not load prediction history');
+}
+
+export function getPrediction(id: string, token: string): Promise<Prediction> {
+  return request<Prediction>(`/predictions/${encodeURIComponent(id)}`, { headers: authorization(token) }, 'Could not load this prediction');
 }
 
 export function getModels(token: string): Promise<Model[]> {

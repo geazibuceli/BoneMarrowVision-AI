@@ -18,11 +18,14 @@ import {
   Routes,
   useLocation,
   useNavigate,
+  useParams,
+  useSearchParams,
 } from 'react-router-dom';
 import {
   getExperiments,
   getModels,
   getOverview,
+  getPrediction,
   getPredictions,
   getProtectedMedia,
   login,
@@ -56,7 +59,7 @@ function errorMessage(reason: unknown, fallback: string): string {
 function formatTimestamp(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Unknown date';
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat('en', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);
@@ -116,7 +119,7 @@ function ErrorMessage({ message, retry }: { message: string; retry?: () => void 
 
 function RouteMetadata() {
   const { pathname } = useLocation();
-  const pageTitle = PAGE_TITLES[pathname] ?? 'Page not found';
+  const pageTitle = PAGE_TITLES[pathname] ?? (/^\/history\/[^/]+$/.test(pathname) ? 'Prediction details' : 'Page not found');
 
   useEffect(() => {
     document.title = pathname === '/' ? 'BoneMarrowVision AI' : `${pageTitle} | BoneMarrowVision AI`;
@@ -208,7 +211,7 @@ function Auth({ mode }: { mode: 'login' | 'register' }) {
   if (status === 'checking') {
     return <main id="main-content" className="workspace centered-state"><LoadingMessage>Checking your session…</LoadingMessage></main>;
   }
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to={safeRedirectTarget((location.state as RedirectState | null)?.from)} replace />;
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -308,6 +311,7 @@ function Analyze() {
   const { token } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef('');
+  const submittingRef = useRef(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const [result, setResult] = useState<Prediction | null>(null);
@@ -328,7 +332,7 @@ function Analyze() {
   };
 
   const choose = (selected?: File) => {
-    if (!selected) return;
+    if (!selected || submittingRef.current) return;
     setResult(null);
     setError('');
 
@@ -366,11 +370,13 @@ function Analyze() {
   };
 
   const submit = async () => {
+    if (submittingRef.current) return;
     if (!file) {
       setError('Choose an image before running the analysis.');
       return;
     }
 
+    submittingRef.current = true;
     setBusy(true);
     setError('');
     setResult(null);
@@ -383,6 +389,7 @@ function Analyze() {
       setError(errorMessage(reason, 'Analysis failed.'));
       setAnnouncement('Analysis failed.');
     } finally {
+      submittingRef.current = false;
       setBusy(false);
     }
   };
@@ -395,6 +402,7 @@ function Analyze() {
       ref={inputRef}
       className="visually-hidden-file"
       type="file"
+      disabled={busy}
       accept="image/png,image/jpeg,.png,.jpg,.jpeg"
       tabIndex={-1}
       onChange={(event) => {
@@ -411,7 +419,7 @@ function Analyze() {
       onClick={() => inputRef.current?.click()}
       onDragEnter={(event) => {
         event.preventDefault();
-        setDragActive(true);
+        if (!submittingRef.current) setDragActive(true);
       }}
       onDragOver={(event) => event.preventDefault()}
       onDragLeave={() => setDragActive(false)}
@@ -424,7 +432,15 @@ function Analyze() {
     </button>
     <output className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</output>
     {error && <p className="error" role="alert">{error}</p>}
-    {result && <section className="result" aria-labelledby="result-heading">
+    {result && <>
+      <PredictionResult result={result} />
+      <div className="actions"><Link className="button" to={`/history/${result.id}`}>Open saved result</Link><Link className="button" to="/history">View history</Link></div>
+    </>}
+  </main>;
+}
+
+function PredictionResult({ result }: { result: Prediction }) {
+  return <section className="result" aria-labelledby="result-heading">
       <div>
         <span className="eyebrow">Prediction</span>
         <h2 id="result-heading">{result.predicted_class}</h2>
@@ -438,15 +454,28 @@ function Analyze() {
         </ol>
       </div>
       {result.gradcam_image_path && <ProtectedImage key={result.gradcam_image_path} path={result.gradcam_image_path} />}
+      {!result.gradcam_image_path && <p className="muted">Grad-CAM is unavailable for this prediction. The saved result is still accessible.</p>}
       <p>{result.disclaimer}</p>
-    </section>}
-  </main>;
+    </section>;
 }
 
+const HISTORY_PAGE_SIZE = 25;
+// The API accepts offsets up to 1,000,000.
+const MAX_HISTORY_PAGE = Math.floor(1_000_000 / HISTORY_PAGE_SIZE) + 1;
+
 function History() {
+  const [params, setParams] = useSearchParams();
+  const requestedPage = Number(params.get('page') ?? '1');
+  const page = Number.isSafeInteger(requestedPage) && requestedPage >= 1 && requestedPage <= MAX_HISTORY_PAGE ? requestedPage : 1;
+  return <HistoryPage key={page} page={page} changePage={(nextPage) => setParams({ page: String(nextPage) })} />;
+}
+
+function HistoryPage({ page, changePage }: { page: number; changePage: (page: number) => void }) {
   const { token } = useAuth();
-  const loadPredictions = useCallback(() => getPredictions(token), [token]);
+  // Fetch one extra record to detect the next page without a separate count request.
+  const loadPredictions = useCallback(() => getPredictions(token, HISTORY_PAGE_SIZE + 1, (page - 1) * HISTORY_PAGE_SIZE), [token, page]);
   const predictions = useResource(loadPredictions);
+  const rows = predictions.data?.slice(0, HISTORY_PAGE_SIZE);
 
   return <main id="main-content" className="workspace">
     <p className="eyebrow">Research log</p>
@@ -457,11 +486,43 @@ function History() {
     {predictions.data && <section className="table-wrap" aria-label="Prediction history" tabIndex={0}>
       <table>
         <caption className="sr-only">Predictions saved by this account</caption>
-        <thead><tr><th scope="col">Class</th><th scope="col">Confidence</th><th scope="col">Date and time</th></tr></thead>
-        <tbody>{predictions.data.map((row) => <tr key={row.id}><td>{row.predicted_class}</td><td>{(row.confidence * 100).toFixed(1)}%</td><td><time dateTime={row.created_at}>{formatTimestamp(row.created_at)}</time></td></tr>)}</tbody>
+        <thead><tr><th scope="col">Class</th><th scope="col">Confidence</th><th scope="col">Date and time</th><th scope="col">Result</th></tr></thead>
+        <tbody>{rows?.map((row) => <tr key={row.id}><td>{row.predicted_class}</td><td>{(row.confidence * 100).toFixed(1)}%{row.low_confidence && <span className="warning"> (Low confidence)</span>}</td><td><time dateTime={row.created_at}>{formatTimestamp(row.created_at)}</time></td><td><Link to={`/history/${row.id}`} state={{ historyPage: page }} aria-label={`View prediction ${row.id}`}>View result</Link></td></tr>)}</tbody>
       </table>
-      {predictions.data.length === 0 && <p className="empty">No predictions recorded for this account.</p>}
+      {predictions.data.length === 0 && <p className="empty">{page === 1 ? 'No predictions recorded for this account.' : 'No predictions on this page.'}</p>}
     </section>}
+    <nav className="actions" aria-label="History pages">
+      <button className="button" type="button" disabled={page === 1} onClick={() => changePage(page - 1)}>Previous</button>
+      <span aria-live="polite">Page {page}</span>
+      <button className="button" type="button" disabled={predictions.loading || Boolean(predictions.error) || !predictions.data || predictions.data.length <= HISTORY_PAGE_SIZE || page >= MAX_HISTORY_PAGE} onClick={() => changePage(page + 1)}>Next</button>
+    </nav>
+    <Link className="button primary" to="/analyze">Analyze an image</Link>
+  </main>;
+}
+
+function PredictionDetails() {
+  const { predictionId = '' } = useParams();
+  return <PredictionDetailsContent key={predictionId} predictionId={predictionId} />;
+}
+
+function PredictionDetailsContent({ predictionId }: { predictionId: string }) {
+  const { token } = useAuth();
+  const location = useLocation();
+  const historyPage = (location.state as { historyPage?: number } | null)?.historyPage;
+  const backPath = typeof historyPage === 'number' && Number.isSafeInteger(historyPage) && historyPage > 1 && historyPage <= MAX_HISTORY_PAGE ? `/history?page=${historyPage}` : '/history';
+  const loadPrediction = useCallback(() => getPrediction(predictionId, token), [predictionId, token]);
+  const prediction = useResource(loadPrediction);
+
+  return <main id="main-content" className="workspace">
+    <Link to={backPath}>Back to history</Link>
+    <h1>Prediction details</h1>
+    {prediction.loading && <LoadingMessage>Loading prediction details...</LoadingMessage>}
+    {prediction.error && <ErrorMessage message={prediction.error} retry={prediction.reload} />}
+    {prediction.data && <>
+      <p className="muted">Saved <time dateTime={prediction.data.created_at}>{formatTimestamp(prediction.data.created_at)}</time> ({LOCAL_TIME_ZONE}).</p>
+      <PredictionResult result={prediction.data} />
+    </>}
+    <div className="actions"><Link className="button primary" to="/analyze">Analyze another image</Link></div>
   </main>;
 }
 
@@ -544,6 +605,7 @@ function App() {
       <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
       <Route path="/analyze" element={<Protected><Analyze /></Protected>} />
       <Route path="/history" element={<Protected><History /></Protected>} />
+      <Route path="/history/:predictionId" element={<Protected><PredictionDetails /></Protected>} />
       <Route path="/models" element={<Protected><Models /></Protected>} />
       <Route path="/experiments" element={<Protected><Experiments /></Protected>} />
       <Route path="/docs" element={<Docs />} />

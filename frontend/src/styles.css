@@ -183,6 +183,8 @@ nav a[aria-current="page"] {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
   margin: 34px 0;
 }
 
@@ -311,6 +313,7 @@ nav a[aria-current="page"] {
 .result h2 {
   margin: 4px 0;
   font-size: 2rem;
+  overflow-wrap: anywhere;
 }
 
 .result > p {
@@ -320,7 +323,9 @@ nav a[aria-current="page"] {
 }
 
 .top-list {
-  min-width: 210px;
+  min-width: min(210px, 100%);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .top-list > strong {

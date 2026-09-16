@@ -4,10 +4,55 @@ import {
   AUTH_UNAUTHORIZED_EVENT,
   ApiError,
   getProtectedMedia,
+  getPrediction,
+  getPredictions,
+  uploadPrediction,
   normalizeApiUrl,
   readJsonResponse,
   resolveMediaUrl,
 } from '../src/api.ts';
+
+test('uploads an image and reopens its saved result through authenticated requests', async () => {
+  const originalFetch = globalThis.fetch;
+  const file = new File(['image-content'], 'cell.png', { type: 'image/png' });
+  const prediction = { id: 7, predicted_class: 'class-a', confidence: 0.95 };
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push(url);
+    assert.equal(new Headers(options.headers).get('authorization'), 'Bearer test-token');
+    if (options.method === 'POST') {
+      assert.equal(url, '/api/v1/predictions');
+      assert.equal(new Headers(options.headers).has('content-type'), false);
+      assert.equal(options.body.get('file').name, 'cell.png');
+      assert.equal(await options.body.get('file').text(), 'image-content');
+    }
+    return Response.json(url.includes('?') ? [prediction] : prediction);
+  };
+
+  try {
+    assert.deepEqual(await uploadPrediction(file, 'test-token'), prediction);
+    assert.deepEqual(await getPredictions('test-token', 26, 100), [prediction]);
+    assert.deepEqual(await getPrediction('7', 'test-token'), prediction);
+    assert.deepEqual(calls, [
+      '/api/v1/predictions',
+      '/api/v1/predictions?limit=26&offset=100',
+      '/api/v1/predictions/7',
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('reports an unavailable saved prediction', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => Response.json({ detail: 'Prediction not found' }, { status: 404 });
+  try {
+    await assert.rejects(() => getPrediction('999', 'test-token'),
+      (error) => error instanceof ApiError && error.status === 404 && error.message === 'Prediction not found');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test('normalizes API base URLs without leaving a trailing slash', () => {
   assert.equal(normalizeApiUrl(' /api/v1/ '), '/api/v1');

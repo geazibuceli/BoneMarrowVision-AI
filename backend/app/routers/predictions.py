@@ -193,7 +193,7 @@ def list_predictions(
     predictions = db.scalars(
         select(Prediction)
         .where(Prediction.user_id == user.id)
-        .order_by(Prediction.created_at.desc())
+        .order_by(Prediction.created_at.desc(), Prediction.id.desc())
         .offset(offset)
         .limit(limit)
     )

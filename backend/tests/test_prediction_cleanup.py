@@ -78,3 +78,14 @@ def test_successful_prediction_removes_original_input(
     assert not captured_input["path"].exists()
     assert list((workspace_tmp_path / "temporary-inputs").iterdir()) == []
     assert response.json()["gradcam_image_path"].endswith("/gradcam")
+    saved = response.json()
+    headers = {"Authorization": f"Bearer {token}"}
+    history = client.get("/api/v1/predictions?limit=26&offset=0", headers=headers)
+    assert history.status_code == 200
+    assert history.json() == [saved]
+    detail = client.get(f"/api/v1/predictions/{saved['id']}", headers=headers)
+    assert detail.status_code == 200
+    assert detail.json() == saved
+    media = client.get(saved["gradcam_image_path"], headers=headers)
+    assert media.status_code == 200
+    assert media.content == b"gradcam"
