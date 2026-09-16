@@ -1,19 +1,16 @@
-FROM python:3.11-slim
+FROM python:3.11-slim@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY backend/requirements.txt ./requirements.txt
+COPY requirements/runtime.lock ./requirements.lock
 COPY backend/pyproject.toml ./pyproject.toml
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r requirements.lock
 COPY ml /app/ml
-RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch torchvision \
-    && pip install --no-cache-dir \
-        "scikit-learn>=1.4" "numpy>=1.26" "PyYAML>=6.0" "tqdm>=4.66" \
-        "matplotlib>=3.8" "seaborn>=0.13" \
-    && pip install --no-cache-dir --no-deps -e /app/ml
+RUN pip install --no-cache-dir --no-deps --no-build-isolation -e /app/ml \
+    && pip check
 
 COPY backend/app ./app
 COPY backend/alembic ./alembic

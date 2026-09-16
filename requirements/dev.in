@@ -1,0 +1,4 @@
+-r runtime.in
+-c runtime.lock
+-r ../backend/requirements-dev.txt
+playwright==1.63.0
