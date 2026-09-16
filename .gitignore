@@ -33,3 +33,4 @@ postgres_data/
 .vscode/
 .DS_Store
 /NUL
+.e2e-artifacts/

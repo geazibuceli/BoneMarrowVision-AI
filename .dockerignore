@@ -22,3 +22,5 @@ mlruns
 *.pt
 *.pth
 *.ckpt
+.e2e-artifacts
+.audit-*
