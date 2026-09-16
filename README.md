@@ -187,6 +187,10 @@ cd ../frontend && npm run lint && npm test && npm run build
 
 CI repeats the backend, ML, frontend, and Compose configuration checks.
 
+CI also runs real browser workflows in Chromium at desktop and mobile widths using a synthetic checkpoint and image. The API image and Python CI jobs use hash-verified dependency locks for Linux x86_64 / Python 3.11 CPU environments. See [development checks](docs/development-checks.md) for locked installation, dependency updates, and local browser-test commands.
+
+See [runtime validation](docs/runtime-validation.md) for the September 16, 2026 browser, real-inference, and Docker smoke-test results, including measured latency, memory usage, and test limitations.
+
 ## Reports and sensitive artifacts
 
 Only deliberately reviewed, de-identified aggregate reports belong in Git. Do not commit raw data, processed split files, uploads, prediction images, patient identifiers, personal paths, credentials, tokens, database files, or checkpoints. Generated Grad-CAM images are ignored because their source can be sensitive.
