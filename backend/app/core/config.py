@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     prediction_rate_window_seconds: int = Field(default=60, ge=1, le=3_600)
     gradcam_retention_days: int = Field(default=30, ge=1, le=3_650)
     inference_temp_retention_hours: int = Field(default=24, ge=1, le=8_760)
+    retention_cleanup_interval_seconds: int = Field(default=3600, ge=1, le=86_400)
     trust_proxy_headers: bool = False
     cors_origins: str = "http://localhost:5173"
 
