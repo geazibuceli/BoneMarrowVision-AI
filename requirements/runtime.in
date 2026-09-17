@@ -3,5 +3,5 @@
 -r ../backend/requirements.txt
 torch @ https://download.pytorch.org/whl/cpu/torch-2.14.0%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl
 torchvision @ https://download.pytorch.org/whl/cpu/torchvision-0.29.0%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl
-setuptools==79.0.1
+setuptools==84.0.0
 wheel
