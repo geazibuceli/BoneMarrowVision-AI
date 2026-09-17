@@ -20,8 +20,6 @@ warn_unused_configs = true
 module = [
     "bone_marrow_vision",
     "bone_marrow_vision.*",
-    "jose",
-    "jose.*",
 ]
 follow_imports = "skip"
 ignore_missing_imports = true
