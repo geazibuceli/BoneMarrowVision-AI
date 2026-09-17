@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: install inspect prepare test lint build compose-config check up
+.PHONY: install inspect prepare test lint build compose-config check up locks-check audit
 
 install:
 	$(PYTHON) -m pip install -e "ml[dev]"
@@ -28,7 +28,14 @@ build:
 compose-config:
 	docker compose config --quiet
 
-check: lint test build compose-config
+locks-check:
+	$(PYTHON) scripts/check_locked_requirements.py
+
+audit: locks-check
+	$(PYTHON) scripts/audit_locked_requirements.py
+	cd frontend && npm audit
+
+check: locks-check lint test build compose-config
 
 up:
 	docker compose up --build
