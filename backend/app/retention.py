@@ -2,9 +2,22 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Callable
 from pathlib import Path
 
+import anyio
+
 LOGGER = logging.getLogger(__name__)
+
+
+async def run_periodic_cleanup(cleanup: Callable[[], dict[str, int]], interval_seconds: float) -> None:
+    """Run serially off the event loop and wait for in-flight cleanup on shutdown."""
+    while True:
+        await anyio.sleep(interval_seconds)
+        try:
+            await anyio.to_thread.run_sync(cleanup)
+        except Exception:
+            LOGGER.exception("Scheduled artifact cleanup failed; retrying at the next interval")
 
 
 def _remove_older_than(directory: Path, pattern: str, cutoff: float) -> int:
