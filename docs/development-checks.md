@@ -37,6 +37,28 @@ docker run --rm --mount "type=bind,source=$PWD,target=/workspace" -w /workspace 
 
 Review both lock diffs, run `python scripts/check_locked_requirements.py`, reinstall in a clean environment, run the backend, ML, and browser suites, and build the API image before merging. The declaration check detects incompatible or missing direct pins and runtime/development disagreements; `pip check` verifies installed dependency metadata. Neither check replaces executing the tests.
 
+Run `python scripts/audit_locked_requirements.py` to check both resolved locks
+against OSV without installing the Linux wheels. It requires `packaging` and
+network access; service failures and incomplete responses fail the check.
+`make audit` also runs the frontend npm audit.
+
+The dependency-maintenance workflow audits changed locks on pushes and pull
+requests and repeats the audit weekly. Scheduled and manual runs also regenerate
+candidate locks with `--upgrade` and export a patch artifact for review. Download
+and inspect that patch, apply it on a branch, and run the full validation above.
+Candidates are not automatically committed or merged. Pins and upper bounds in
+the source declarations still require deliberate maintenance.
+
+## Artifact retention
+
+The API cleans generated artifacts at startup and then every
+`RETENTION_CLEANUP_INTERVAL_SECONDS` (default: 3600). Expiration is determined by
+`GRADCAM_RETENTION_DAYS` and `INFERENCE_TEMP_RETENTION_HOURS`. The periodic sweep
+runs in a worker thread, with one sweep at a time per API process. Shutdown
+cancels the timer and waits for any running sweep. A failed periodic sweep is
+logged and retried at the next interval. Expired files can remain until the next
+sweep; this is not an exact deletion deadline.
+
 ## Browser suite
 
 The `browser` CI job runs `e2e/test_workflow.py` in Chromium at desktop and 360 px mobile widths. It starts the real FastAPI API and Vite frontend on isolated ports, applies migrations to a fresh SQLite database, and creates a deterministic small BaselineCNN checkpoint and synthetic image. It does not download a dataset, use real patient images, or require a trained checkpoint.
@@ -64,6 +86,12 @@ The workflow follows the official [pip-tools locking and hash guidance](https://
 ## Initial verification
 
 The committed locks were installed with hash verification in a clean Python 3.11 Linux API image. `pip check` reported no conflicts. A separate Linux validation container using the development lock, Node 22.23.2, and Chromium passed 20 ML tests, 20 backend tests against isolated PostgreSQL, nine frontend tests, and both desktop/mobile browser cases. Lint and the frontend production build also passed. The API image built successfully with the runtime lock and its pinned base image.
+
+After the dependency and retention update, validation passed 39 backend tests
+on SQLite and PostgreSQL, 20 ML tests, nine frontend tests, two browser tests,
+and five dependency-audit tests. The updated production API image also built
+successfully. See [the update review](update-review-2026-09-17.md) for versions,
+audit results, and the separate Windows CUDA environment limitation.
 
 Both browser cases also passed locally in headless Edge on Windows. They exposed a login redirect race: after a session expired, signing in could lead to the dashboard instead of the interrupted page. The authenticated redirect now respects the original destination, and the browser suite verifies that behavior.
 
