@@ -1,7 +1,8 @@
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from pwdlib import PasswordHash
 from pwdlib.exceptions import UnknownHashError
 
@@ -50,10 +51,11 @@ def decode_subject(token: str) -> str:
             algorithms=["HS256"],
             audience=settings.jwt_audience,
             issuer=settings.jwt_issuer,
+            options={"require": ["sub", "exp", "iat", "iss", "aud", "jti"]},
         )
         subject = payload.get("sub")
         if not isinstance(subject, str) or not subject or payload.get("type") != "access":
             raise ValueError("Missing token subject")
         return subject
-    except (JWTError, ValueError) as error:
+    except (InvalidTokenError, ValueError) as error:
         raise ValueError("Invalid authentication token") from error
