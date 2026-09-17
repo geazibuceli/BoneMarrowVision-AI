@@ -1,0 +1,43 @@
+name: Dependency maintenance
+on:
+  push:
+    paths: ['requirements/**', 'backend/requirements*.txt', 'ml/pyproject.toml', 'scripts/*requirements.py', '.github/workflows/dependency-maintenance.yml']
+  pull_request:
+    paths: ['requirements/**', 'backend/requirements*.txt', 'ml/pyproject.toml', 'scripts/*requirements.py', '.github/workflows/dependency-maintenance.yml']
+  schedule:
+    - cron: '23 8 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11.16'
+      - run: pip install packaging==26.3
+      - run: python -m unittest discover -s scripts/tests
+      - run: python scripts/check_locked_requirements.py
+      - run: python scripts/audit_locked_requirements.py
+  refresh:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11.16'
+      - run: sh scripts/compile-locks.sh --upgrade
+      - run: python scripts/check_locked_requirements.py
+      - run: python scripts/audit_locked_requirements.py
+      - name: Export candidate lock changes for review
+        run: git diff -- requirements/runtime.lock requirements/dev.lock > dependency-update.patch
+      - uses: actions/upload-artifact@v7
+        with:
+          name: candidate-python-lock-update
+          path: dependency-update.patch
+          retention-days: 14
