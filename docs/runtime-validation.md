@@ -64,7 +64,7 @@ The following checks passed:
 
 The container used Python 3.11.16 and PyTorch 2.14.0+cpu. Its first upload after model registration took **0.808 seconds**, with the model already loaded during registration. The returned class and confidence matched the native run for this image. This is a separate runtime and timing boundary, so it is not a direct comparison with the native warm benchmark.
 
-Test containers and their network were removed after validation. Isolated test volumes and built images were retained; Docker Desktop was left running. Local test databases, screenshots, scripts, and detailed measurements remain under the ignored `.audit-runtime/` directory and are not part of the versioned report. Playwright and psutil were installed only in the local virtual environment for validation.
+Test containers and their network were removed after validation. Isolated test volumes and built images were retained; Docker Desktop was left running. Local test databases, screenshots, scripts, and detailed measurements were generated under the ignored `.audit-runtime/` directory and removed during subsequent workspace cleanup. The summarized results remain in this versioned report. Playwright and psutil were installed only in the local virtual environment for validation.
 
 ## Scope and remaining limits
 
