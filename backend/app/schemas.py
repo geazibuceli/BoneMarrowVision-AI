@@ -37,9 +37,18 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class PredictionModelResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    version: str
+    architecture: str
+
+
 class PredictionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    model: PredictionModelResponse | None = None
     predicted_class: str
     confidence: float
     top_predictions_json: list

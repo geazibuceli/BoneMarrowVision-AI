@@ -105,7 +105,9 @@ curl -X POST http://localhost:8000/api/v1/auth/register \
   -d '{"email":"admin@example.org","password":"replace-with-a-strong-password","full_name":"Research Admin","admin_bootstrap_token":"replace-with-the-configured-token"}'
 ```
 
-The token cannot create another administrator after the first one exists. Keep it secret and rotate it after bootstrap. Sign in as that administrator, place a compatible checkpoint under `models/`, and register it through Swagger with:
+The token cannot create another administrator after the first one exists. Keep it secret and rotate it after bootstrap. Sign in as that administrator, place a compatible checkpoint under `models/`, and open **Models** to register it using its server-side checkpoint and configuration paths. The form also accepts optional metrics as a JSON object. Researchers can inspect registered models and reported metrics; registration, activation, and activation history are restricted to administrators.
+
+For API clients, the equivalent registration payload is:
 
 ```json
 {
@@ -120,7 +122,9 @@ The token cannot create another administrator after the first one exists. Keep i
 }
 ```
 
-Activate the returned record with `POST /api/v1/models/{model_id}/activate`. Registration is restricted to allowed project directories, validates checkpoint structure and architecture, and records its SHA-256 digest. The checkpoint must contain `model_state`, `class_names`, and `architecture`; checkpoints written by the current training script also contain configuration, history, and provenance.
+Select **Activate** in the model registry, or use `POST /api/v1/models/{model_id}/activate`. Registration is restricted to allowed project directories, validates checkpoint structure and architecture, and records its SHA-256 digest. Activation revalidates the checkpoint before changing the active record; a failed validation leaves the current activation unchanged. The checkpoint must contain `model_state`, `class_names`, and `architecture`; checkpoints written by the current training script also contain configuration, history, and provenance.
+
+Administrators can use **Activation history** to inspect previous activations and reactivate an earlier version. Keep its original checkpoint available to restore it. Changing the active model affects future analyses: prediction results and history show the name and version of the model that produced each result. Legacy predictions without an associated model explicitly display an unavailable version. Reported registry metrics may come from different datasets or evaluation conditions and should not be treated as a controlled comparison.
 
 ## Dataset workflow
 

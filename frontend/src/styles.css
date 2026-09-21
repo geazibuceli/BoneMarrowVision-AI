@@ -575,3 +575,45 @@ footer {
   max-width: 800px;
   height: auto;
 }
+.model-registry > section {
+  margin-block: 2rem;
+}
+
+.model-registry output {
+  display: block;
+  margin-block: 1rem;
+}
+
+.model-form fieldset {
+  display: grid;
+  gap: 1rem;
+  max-width: 640px;
+  min-width: 0;
+  border: 1px solid var(--border);
+}
+
+.model-form label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.model-form input,
+.model-form select,
+.model-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem;
+  font: inherit;
+}
+
+.model-form select:focus-visible,
+.model-form textarea:focus-visible {
+  outline: 3px solid #176b87;
+  outline-offset: 3px;
+}
+
+.model-hash {
+  max-width: 28rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}

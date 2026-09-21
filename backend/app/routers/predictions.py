@@ -41,6 +41,7 @@ def _prediction_response(prediction: Prediction) -> dict:
             gradcam_image_path = f"/api/v1/predictions/{prediction.id}/gradcam"
     return {
         "id": prediction.id,
+        "model": prediction.model,
         "predicted_class": prediction.predicted_class,
         "confidence": prediction.confidence,
         "top_predictions_json": prediction.top_predictions_json,

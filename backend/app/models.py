@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -72,6 +72,7 @@ class Prediction(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     model_id: Mapped[int | None] = mapped_column(ForeignKey("ml_models.id"), nullable=True)
+    model: Mapped[MLModel | None] = relationship(lazy="joined")
     predicted_class: Mapped[str] = mapped_column(String(160))
     confidence: Mapped[float] = mapped_column(Float)
     top_predictions_json: Mapped[list] = mapped_column(JSON, default=list)

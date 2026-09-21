@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import BACKEND_ROOT
+from app.core.rate_limit import rate_limiter
 from app.database import Base, get_db
 from app.main import app
 
@@ -67,6 +68,7 @@ def session_factory() -> Generator[sessionmaker[Session]]:
 
 @pytest.fixture
 def client(session_factory: sessionmaker[Session]) -> Generator[TestClient]:
+    rate_limiter.clear()
     def override_get_db() -> Generator[Session]:
         database = session_factory()
         try:
@@ -80,3 +82,4 @@ def client(session_factory: sessionmaker[Session]) -> Generator[TestClient]:
             yield test_client
     finally:
         app.dependency_overrides.pop(get_db, None)
+        rate_limiter.clear()

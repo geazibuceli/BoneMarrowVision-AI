@@ -213,8 +213,28 @@ export function getPrediction(id: string, token: string): Promise<Prediction> {
   return request<Prediction>(`/predictions/${encodeURIComponent(id)}`, { headers: authorization(token) }, 'Could not load this prediction');
 }
 
-export function getModels(token: string): Promise<Model[]> {
-  return request<Model[]>('/models', { headers: authorization(token) }, 'Could not load the model registry');
+export function getModels(token: string, limit = 100, offset = 0): Promise<Model[]> {
+  return request<Model[]>(`/models?limit=${limit}&offset=${offset}`, { headers: authorization(token) }, 'Could not load the model registry');
+}
+
+export type ModelRegistration = {
+  name: string; version: string; architecture: string; checkpoint_path: string; config_path: string;
+  metrics_json: Record<string, unknown>;
+};
+export type ModelActivation = { id: number; model_id: number | null; model_name: string; model_version: string | null; created_at: string };
+
+export function registerModel(payload: ModelRegistration, token: string): Promise<Model> {
+  return request('/models/register', {
+    method: 'POST', headers: { ...authorization(token), 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+  }, 'Could not register the model');
+}
+
+export function activateModel(id: number, token: string): Promise<Model> {
+  return request(`/models/${id}/activate`, { method: 'POST', headers: authorization(token) }, 'Could not activate the model');
+}
+
+export function getModelActivations(token: string, offset = 0): Promise<ModelActivation[]> {
+  return request(`/models/activation-history?limit=26&offset=${offset}`, { headers: authorization(token) }, 'Could not load activation history');
 }
 
 export function getExperiments(token: string): Promise<Experiment[]> {

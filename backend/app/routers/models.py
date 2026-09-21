@@ -1,4 +1,5 @@
 import pickle
+from datetime import UTC
 from pathlib import Path
 from typing import Any, Literal
 
@@ -12,7 +13,7 @@ from app.audit import add_audit_event
 from app.core.config import settings
 from app.database import get_db
 from app.inference import checkpoint_sha256, load_model
-from app.models import MLModel, User
+from app.models import AuditLog, MLModel, User
 from app.routers.auth import current_user, require_admin
 from app.schemas import ModelResponse
 
@@ -67,8 +68,38 @@ def list_models(
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0, le=1_000_000),
 ):
-    models = db.scalars(select(MLModel).order_by(MLModel.created_at.desc()).offset(offset).limit(limit))
+    models = db.scalars(
+        select(MLModel).order_by(MLModel.created_at.desc(), MLModel.id.desc()).offset(offset).limit(limit)
+    )
     return [_model_response(model) for model in models]
+
+
+@router.get("/activation-history")
+def activation_history(
+    _admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+    limit: int = Query(default=25, ge=1, le=100),
+    offset: int = Query(default=0, ge=0, le=1_000_000),
+):
+    events = db.scalars(
+        select(AuditLog).where(AuditLog.action == "model.activated", AuditLog.resource_type == "ml_model")
+        .order_by(AuditLog.created_at.desc(), AuditLog.id.desc()).offset(offset).limit(limit)
+    ).all()
+    model_ids = {int(event.resource_id) for event in events if (event.resource_id or "").isdigit()}
+    models = {model.id: model for model in db.scalars(select(MLModel).where(MLModel.id.in_(model_ids)))}
+    history = []
+    for event in events:
+        model_id = int(event.resource_id) if (event.resource_id or "").isdigit() else None
+        model = models.get(model_id)
+        metadata = event.metadata_json or {}
+        history.append({
+            "id": event.id,
+            "model_id": model_id if model else None,
+            "model_name": metadata.get("model_name", model.name if model else "Unavailable model"),
+            "model_version": metadata.get("model_version", model.version if model else None),
+            "created_at": event.created_at.replace(tzinfo=UTC) if event.created_at.tzinfo is None else event.created_at,
+        })
+    return history
 
 
 @router.get("/{model_id}", response_model=ModelResponse)
@@ -140,19 +171,31 @@ def activate_model(
     model = db.get(MLModel, model_id)
     if not model:
         raise HTTPException(status_code=404, detail="Model not found")
-    db.execute(update(MLModel).values(is_active=False))
-    model.is_active = True
-    add_audit_event(
-        db,
-        user_id=admin.id,
-        action="model.activated",
-        resource_type="ml_model",
-        resource_id=model.id,
-    )
     try:
+        load_model(model.checkpoint_path, model.architecture, (model.metrics_json or {}).get("_checkpoint_sha256"))
+    except (EOFError, OSError, RuntimeError, TypeError, ValueError, pickle.UnpicklingError) as error:
+        raise HTTPException(
+            status_code=422, detail="Checkpoint is unavailable or incompatible; active model unchanged",
+        ) from error
+    if model.is_active:
+        return _model_response(model)
+    try:
+        db.execute(update(MLModel).values(is_active=False))
+        model.is_active = True
+        add_audit_event(
+            db,
+            user_id=admin.id,
+            action="model.activated",
+            resource_type="ml_model",
+            resource_id=model.id,
+            metadata={"model_name": model.name, "model_version": model.version},
+        )
         db.commit()
     except IntegrityError as error:
         db.rollback()
         raise HTTPException(status_code=409, detail="Another model activation completed concurrently; retry") from error
+    except SQLAlchemyError as error:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Model could not be activated") from error
     db.refresh(model)
     return _model_response(model)

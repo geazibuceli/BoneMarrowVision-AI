@@ -23,7 +23,6 @@ import {
 } from 'react-router-dom';
 import {
   getExperiments,
-  getModels,
   getOverview,
   getPrediction,
   getPredictions,
@@ -34,7 +33,8 @@ import {
 } from './api';
 import { AuthProvider, useAuth } from './auth';
 import { ExperimentRunDetails, ExperimentRuns } from './ExperimentRuns';
-import type { Experiment, Model, Prediction } from './types';
+import { ModelRegistry } from './ModelRegistry';
+import type { Experiment, Prediction } from './types';
 import './styles.css';
 
 const DISCLAIMER = 'Research and Educational Use Only. This system is not a medical device and must not be used for clinical diagnosis, treatment, or decision-making.';
@@ -445,6 +445,7 @@ function PredictionResult({ result }: { result: Prediction }) {
       <div>
         <span className="eyebrow">Prediction</span>
         <h2 id="result-heading">{result.predicted_class}</h2>
+        <p>{result.model ? `Model: ${result.model.name} · ${result.model.version}` : 'Model version is unavailable for this prediction.'}</p>
         <strong>{(result.confidence * 100).toFixed(1)}% confidence</strong>
         {result.low_confidence && <p className="warning">Low-confidence prediction. Treat it as uncertain.</p>}
       </div>
@@ -487,8 +488,8 @@ function HistoryPage({ page, changePage }: { page: number; changePage: (page: nu
     {predictions.data && <section className="table-wrap" aria-label="Prediction history" tabIndex={0}>
       <table>
         <caption className="sr-only">Predictions saved by this account</caption>
-        <thead><tr><th scope="col">Class</th><th scope="col">Confidence</th><th scope="col">Date and time</th><th scope="col">Result</th></tr></thead>
-        <tbody>{rows?.map((row) => <tr key={row.id}><td>{row.predicted_class}</td><td>{(row.confidence * 100).toFixed(1)}%{row.low_confidence && <span className="warning"> (Low confidence)</span>}</td><td><time dateTime={row.created_at}>{formatTimestamp(row.created_at)}</time></td><td><Link to={`/history/${row.id}`} state={{ historyPage: page }} aria-label={`View prediction ${row.id}`}>View result</Link></td></tr>)}</tbody>
+        <thead><tr><th scope="col">Class</th><th scope="col">Confidence</th><th scope="col">Model version</th><th scope="col">Date and time</th><th scope="col">Result</th></tr></thead>
+        <tbody>{rows?.map((row) => <tr key={row.id}><td>{row.predicted_class}</td><td>{(row.confidence * 100).toFixed(1)}%{row.low_confidence && <span className="warning"> (Low confidence)</span>}</td><td>{row.model ? `${row.model.name} · ${row.model.version}` : 'Unavailable'}</td><td><time dateTime={row.created_at}>{formatTimestamp(row.created_at)}</time></td><td><Link to={`/history/${row.id}`} state={{ historyPage: page }} aria-label={`View prediction ${row.id}`}>View result</Link></td></tr>)}</tbody>
       </table>
       {predictions.data.length === 0 && <p className="empty">{page === 1 ? 'No predictions recorded for this account.' : 'No predictions on this page.'}</p>}
     </section>}
@@ -524,27 +525,6 @@ function PredictionDetailsContent({ predictionId }: { predictionId: string }) {
       <PredictionResult result={prediction.data} />
     </>}
     <div className="actions"><Link className="button primary" to="/analyze">Analyze another image</Link></div>
-  </main>;
-}
-
-function Models() {
-  const { token } = useAuth();
-  const loadModels = useCallback(() => getModels(token), [token]);
-  const models = useResource<Model[]>(loadModels);
-
-  return <main id="main-content" className="workspace">
-    <p className="eyebrow">Registry</p>
-    <h1>Model registry</h1>
-    {models.loading && <LoadingMessage>Loading model registry…</LoadingMessage>}
-    {models.error && <ErrorMessage message={models.error} retry={models.reload} />}
-    {models.data && <section className="table-wrap" aria-label="Model registry" tabIndex={0}>
-      <table>
-        <caption className="sr-only">Registered machine-learning models</caption>
-        <thead><tr><th scope="col">Name</th><th scope="col">Architecture</th><th scope="col">Version</th><th scope="col">Status</th></tr></thead>
-        <tbody>{models.data.map((row) => <tr key={row.id}><td>{row.name}</td><td>{row.architecture}</td><td>{row.version}</td><td>{row.is_active ? 'Active' : 'Available'}</td></tr>)}</tbody>
-      </table>
-      {models.data.length === 0 && <p className="empty">No models have been registered yet.</p>}
-    </section>}
   </main>;
 }
 
@@ -608,7 +588,7 @@ function App() {
       <Route path="/analyze" element={<Protected><Analyze /></Protected>} />
       <Route path="/history" element={<Protected><History /></Protected>} />
       <Route path="/history/:predictionId" element={<Protected><PredictionDetails /></Protected>} />
-      <Route path="/models" element={<Protected><Models /></Protected>} />
+      <Route path="/models" element={<Protected><ModelRegistry /></Protected>} />
       <Route path="/experiments" element={<Protected><Experiments /></Protected>} />
       <Route path="/experiments/runs/:runId" element={<Protected><ExperimentRunDetails /></Protected>} />
       <Route path="/docs" element={<Docs />} />
