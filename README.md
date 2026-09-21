@@ -161,6 +161,10 @@ python ml/scripts/generate_gradcam.py \
 
 Training writes a best checkpoint and a separate final checkpoint. Evaluation and analysis record hashes for the inputs and generated artifacts. CUDA is detected automatically; mixed precision is enabled only on CUDA.
 
+For the experimental conditional GAN augmentation pipeline and a 50-epoch classifier
+run with per-epoch checkpoints and learning curves, see the
+[conditional GAN experiment guide](docs/conditional-gan-experiment.md).
+
 ## Recorded experiment
 
 The historical EfficientNet-B0 run used 171,353 valid images across 21 classes, seed 42, 224 × 224 inputs, batch size 32, weighted cross-entropy, and 40 epochs on an NVIDIA GeForce RTX 5080.
