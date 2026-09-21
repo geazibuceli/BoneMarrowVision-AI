@@ -221,6 +221,25 @@ export function getExperiments(token: string): Promise<Experiment[]> {
   return request<Experiment[]>('/experiments', { headers: authorization(token) }, 'Could not load experiments');
 }
 
+export type RunSummary = { id: string; status: Record<string, unknown> };
+export type ExperimentRun = RunSummary & {
+  configuration: Record<string, unknown> | null;
+  comparison: Record<string, unknown> | null;
+  history: Record<string, number>[] | null;
+  control_history: Record<string, number>[] | null;
+  test_report: Record<string, unknown> | null;
+  control_test_report: Record<string, unknown> | null;
+  class_counts: Record<string, number> | null;
+};
+
+export function getExperimentRuns(token: string): Promise<RunSummary[]> {
+  return request('/experiments/runs', { headers: authorization(token) }, 'Could not load local runs');
+}
+
+export function getExperimentRun(id: string, token: string): Promise<ExperimentRun> {
+  return request(`/experiments/runs/${encodeURIComponent(id)}`, { headers: authorization(token) }, 'Could not load this run');
+}
+
 export function getOverview(token: string): Promise<{ total_predictions: number; active_model: number }> {
   return request<{ total_predictions: number; active_model: number }>(
     '/analytics/overview',

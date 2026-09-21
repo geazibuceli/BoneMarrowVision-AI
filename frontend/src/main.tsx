@@ -33,6 +33,7 @@ import {
   uploadPrediction,
 } from './api';
 import { AuthProvider, useAuth } from './auth';
+import { ExperimentRunDetails, ExperimentRuns } from './ExperimentRuns';
 import type { Experiment, Model, Prediction } from './types';
 import './styles.css';
 
@@ -119,7 +120,7 @@ function ErrorMessage({ message, retry }: { message: string; retry?: () => void 
 
 function RouteMetadata() {
   const { pathname } = useLocation();
-  const pageTitle = PAGE_TITLES[pathname] ?? (/^\/history\/[^/]+$/.test(pathname) ? 'Prediction details' : 'Page not found');
+  const pageTitle = PAGE_TITLES[pathname] ?? (pathname.startsWith('/experiments/runs/') ? 'Experiment details' : /^\/history\/[^/]+$/.test(pathname) ? 'Prediction details' : 'Page not found');
 
   useEffect(() => {
     document.title = pathname === '/' ? 'BoneMarrowVision AI' : `${pageTitle} | BoneMarrowVision AI`;
@@ -555,6 +556,7 @@ function Experiments() {
   return <main id="main-content" className="workspace">
     <p className="eyebrow">Experiment tracking</p>
     <h1>Experiments</h1>
+    <ExperimentRuns />
     <p className="muted">Times are shown in {LOCAL_TIME_ZONE}.</p>
     {experiments.loading && <LoadingMessage>Loading experiments…</LoadingMessage>}
     {experiments.error && <ErrorMessage message={experiments.error} retry={experiments.reload} />}
@@ -608,6 +610,7 @@ function App() {
       <Route path="/history/:predictionId" element={<Protected><PredictionDetails /></Protected>} />
       <Route path="/models" element={<Protected><Models /></Protected>} />
       <Route path="/experiments" element={<Protected><Experiments /></Protected>} />
+      <Route path="/experiments/runs/:runId" element={<Protected><ExperimentRunDetails /></Protected>} />
       <Route path="/docs" element={<Docs />} />
       <Route path="*" element={<NotFound />} />
     </Routes></Shell>
