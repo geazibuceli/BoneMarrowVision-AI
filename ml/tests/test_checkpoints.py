@@ -32,6 +32,7 @@ def test_training_writes_coherent_best_and_final_checkpoints(tmp_path):
         "class_strategy": "cross_entropy",
         "early_stopping_patience": 2,
         "seed": 4,
+        "checkpoint_every": 1,
     }
     best_path = tmp_path / "best.pt"
     history = train_model(
@@ -53,6 +54,14 @@ def test_training_writes_coherent_best_and_final_checkpoints(tmp_path):
     assert final["epoch"] == final["training_summary"]["final_epoch"]
     assert best["provenance"] == {"test": True}
     assert "rng" in best["training_state"]
+    for epoch in (1, 2):
+        snapshot = load_checkpoint(tmp_path / f"epoch_{epoch:03d}.pt")
+        assert snapshot["epoch"] == epoch
+        assert snapshot["checkpoint_role"] == "epoch"
+        assert len(snapshot["history"]) == epoch
+    assert (tmp_path / "best.history.json").is_file()
+    assert all(0 <= row["validation_accuracy"] <= 1 for row in history)
+    assert all(row["validation_loss"] >= 0 for row in history)
 
 
 def test_load_checkpoint_keeps_legacy_tensor_only_format_compatible(tmp_path):
