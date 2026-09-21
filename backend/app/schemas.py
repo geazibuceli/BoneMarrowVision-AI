@@ -83,6 +83,7 @@ class ExperimentResponse(BaseModel):
     name: str
     model_id: int | None
     dataset_version: str
+    configuration_json: dict[str, Any]
     train_metrics_json: dict[str, Any]
     validation_metrics_json: dict[str, Any]
     test_metrics_json: dict[str, Any]

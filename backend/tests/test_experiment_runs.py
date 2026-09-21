@@ -1,0 +1,76 @@
+import json
+
+import pytest
+
+from app.core.config import settings
+from app.experiment_artifacts import run_directory
+
+
+@pytest.fixture
+def run_headers(client):
+    client.post("/api/v1/auth/register", json={
+        "email": "runs@example.com", "password": "experiment-password", "full_name": "Run Reader",
+    })
+    response = client.post("/api/v1/auth/login", data={
+        "username": "runs@example.com", "password": "experiment-password",
+    })
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+def test_local_runs_require_authentication(client):
+    for path in ("/runs", "/runs/example", "/runs/example/curves"):
+        assert client.get(f"/api/v1/experiments{path}").status_code == 401
+
+
+def test_completed_and_partial_runs(client, run_headers, workspace_tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "project_root", workspace_tmp_path)
+    run = workspace_tmp_path / "data/experiments/example"
+    run.mkdir(parents=True)
+    (run / "status.json").write_text('{"stage": "training_classifier"}')
+    (run / "config.json").write_text('{"seed": 42}')
+    response = client.get("/api/v1/experiments/runs", headers=run_headers)
+    assert response.json() == [{"id": "example", "status": {"stage": "training_classifier"}}]
+    detail = client.get("/api/v1/experiments/runs/example", headers=run_headers)
+    assert detail.status_code == 200
+    assert detail.json()["configuration"] == {"seed": 42}
+    assert detail.json()["comparison"] is None
+    comparison = {"gan_augmented": {"test_macro_f1": 0.72}, "limitations": "Historical only"}
+    (run / "comparison.json").write_text(json.dumps(comparison))
+    (run / "status.json").write_text('{"stage": "completed"}')
+    detail = client.get("/api/v1/experiments/runs/example", headers=run_headers).json()
+    assert detail["comparison"] == comparison
+    assert detail["status"]["stage"] == "completed"
+    assert client.get("/api/v1/experiments/runs/missing", headers=run_headers).status_code == 404
+    assert client.get("/api/v1/experiments/runs/example/curves", headers=run_headers).status_code == 404
+
+
+def test_malformed_run_does_not_hide_valid_runs(client, run_headers, workspace_tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "project_root", workspace_tmp_path)
+    for name, content in (("valid", '{"stage":"completed"}'), ("broken", "{"), ("wrong", "[]")):
+        run = workspace_tmp_path / "data/experiments" / name
+        run.mkdir(parents=True)
+        (run / "status.json").write_text(content)
+    response = client.get("/api/v1/experiments/runs", headers=run_headers)
+    assert [row["id"] for row in response.json()] == ["valid"]
+    assert client.get("/api/v1/experiments/runs/broken", headers=run_headers).status_code == 503
+
+
+@pytest.mark.parametrize("name", ["..", "../models", "a/b", "a\\b", "C:\\Windows", ".hidden"])
+def test_run_paths_cannot_escape_root(name):
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as error:
+        run_directory(name)
+    assert error.value.status_code == 404
+
+
+@pytest.mark.parametrize("content", ['[null]', '[{"epoch":1,"validation_macro_f1":NaN}]', '{}'])
+def test_invalid_history_returns_recoverable_error(client, run_headers, workspace_tmp_path, monkeypatch, content):
+    monkeypatch.setattr(settings, "project_root", workspace_tmp_path)
+    run = workspace_tmp_path / "data/experiments/invalid-history"
+    (run / "classifier").mkdir(parents=True)
+    (run / "status.json").write_text('{"stage":"completed"}')
+    (run / "classifier/best.history.json").write_text(content)
+    response = client.get("/api/v1/experiments/runs/invalid-history", headers=run_headers)
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Experiment artifact is unavailable or invalid"
