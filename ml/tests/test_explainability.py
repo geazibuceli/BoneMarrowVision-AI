@@ -3,7 +3,7 @@ import torch
 from PIL import Image
 
 from bone_marrow_vision.explainability.gradcam import GradCAM, save_overlay
-from bone_marrow_vision.models.architectures import BaselineCNN, gradcam_target_layer
+from bone_marrow_vision.models.architectures import BaselineCNN, build_model, gradcam_target_layer
 
 
 def test_gradcam_and_overlay_support_original_image_size(tmp_path):
@@ -32,3 +32,18 @@ def test_gradcam_rejects_invalid_class_index():
             assert "class_index" in str(error)
         else:
             raise AssertionError("Expected an invalid class index to fail")
+
+
+def test_convnext_classification_and_gradcam():
+    model = build_model("convnext_tiny", num_classes=3, pretrained=False).eval()
+    inputs = torch.rand(1, 3, 64, 64)
+    with torch.no_grad():
+        assert model(inputs).shape == (1, 3)
+    with GradCAM(model, gradcam_target_layer(model, "convnext_tiny")) as explainer:
+        heatmap = explainer.generate(inputs, class_index=2)
+        assert heatmap.shape == (64, 64)
+        assert np.isfinite(heatmap).all()
+        assert explainer.activations.shape[-2:] == (2, 2)
+        assert torch.isfinite(explainer.gradients).all()
+        assert explainer.gradients.abs().sum() > 0
+    assert model.classifier[2].weight.grad is not None
