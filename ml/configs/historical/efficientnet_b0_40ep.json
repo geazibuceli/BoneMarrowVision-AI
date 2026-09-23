@@ -1,0 +1,6 @@
+{
+  "architecture": "efficientnet_b0",
+  "image_size": 224,
+  "batch_size": 32,
+  "configuration_status": "Partial metadata only; original training configuration unavailable"
+}
