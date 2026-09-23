@@ -43,6 +43,7 @@ services:
     volumes:
       - uploads_data:/app/data/uploads
       - ./models:/app/models:ro
+      - ./ml/configs:/app/ml/configs:ro
       - ./data/experiments:/app/data/experiments:ro
     depends_on:
       db:
