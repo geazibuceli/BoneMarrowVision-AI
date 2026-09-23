@@ -37,6 +37,12 @@ def build_model(architecture: str, num_classes: int, pretrained: bool = True):
         )
         model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
         return model
+    if architecture == "convnext_tiny":
+        model = models.convnext_tiny(
+            weights=models.ConvNeXt_Tiny_Weights.DEFAULT if pretrained else None
+        )
+        model.classifier[2] = nn.Linear(model.classifier[2].in_features, num_classes)
+        return model
     raise ValueError(f"Unsupported architecture: {architecture}")
 
 
@@ -44,7 +50,7 @@ def gradcam_target_layer(model: nn.Module, architecture: str) -> nn.Module:
     """Return a spatial convolutional layer suitable for Grad-CAM."""
     if architecture == "resnet50":
         return model.layer4[-1]
-    if architecture == "efficientnet_b0":
+    if architecture in {"efficientnet_b0", "convnext_tiny"}:
         return model.features[-1]
     if architecture == "baseline_cnn":
         return next(layer for layer in reversed(model.features) if isinstance(layer, nn.Conv2d))
