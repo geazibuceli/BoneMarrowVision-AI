@@ -1,0 +1,18 @@
+{
+  "seed": 42,
+  "deterministic": true,
+  "image_size": 224,
+  "batch_size": 32,
+  "epochs": 100,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.0001,
+  "num_workers": 2,
+  "architecture": "efficientnet_b0",
+  "pretrained": true,
+  "class_strategy": "weighted_cross_entropy",
+  "early_stopping_patience": 100,
+  "low_confidence_threshold": 0.6,
+  "validation_size": 0.15,
+  "test_size": 0.15,
+  "duplicate_policy": "fail"
+}
