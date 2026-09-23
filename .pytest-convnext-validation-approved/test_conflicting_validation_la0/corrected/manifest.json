@@ -1,0 +1,39 @@
+{
+  "format_version": 1,
+  "origin": "audit_of_existing_splits",
+  "group_key": null,
+  "group_isolation_verified": false,
+  "duplicate_policy": "fail",
+  "splits": {
+    "train": {
+      "file": "train.json",
+      "sha256": "05f156cd5185d4e9588ce98eead6da019e50dec3b7a422f66f704ab5e56a9454",
+      "sample_count": 2,
+      "class_counts": {
+        "A": 1,
+        "B": 1
+      }
+    },
+    "validation": {
+      "file": "validation.json",
+      "sha256": "44a6e6ab303ba04824c5e3a87527a36edabb4cb6eda00355a4b85520c3ed1f75",
+      "sample_count": 2,
+      "class_counts": {
+        "A": 1,
+        "B": 1
+      }
+    },
+    "test": {
+      "file": "test.json",
+      "sha256": "77bf0e70b8e098af302360556479db8add982364ce0103d12dcce0b9ecc33ee0",
+      "sample_count": 2,
+      "class_counts": {
+        "A": 1,
+        "B": 1
+      }
+    }
+  },
+  "source_duplicates": [],
+  "cross_split_duplicates": [],
+  "conflicting_labels": []
+}
