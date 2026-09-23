@@ -1,0 +1,10 @@
+[
+  {
+    "path": "C:\\Users\\geazi\\Desktop\\TCC\\BoneMarrowVision-AI\\.pytest-convnext-validation-approved\\test_conflicting_validation_la0\\source\\validation.png",
+    "label": "A"
+  },
+  {
+    "path": "C:\\Users\\geazi\\Desktop\\TCC\\BoneMarrowVision-AI\\.pytest-convnext-validation-approved\\test_conflicting_validation_la0\\source\\validation_b.png",
+    "label": "B"
+  }
+]
