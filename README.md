@@ -47,6 +47,8 @@ The repository includes code, tests, configuration, and selected de-identified r
 
 The recorded 40-epoch experiment is historical: it predates the current strict split-manifest and artifact-provenance implementation. Its aggregate metrics are retained for reference, but a new end-to-end run through the current pipeline is required before claiming complete computational reproducibility. Patient-level independence also cannot be established from the downloaded file layout because no patient, slide, case, or source mapping was available to this project.
 
+A separate matched ResNet-50 and EfficientNet-B0 comparison completed training, evaluation, and analysis on September 23, 2026, using audited splits and recorded input hashes. Its results are documented below; this does not retroactively establish provenance for the historical run or verify patient-level independence.
+
 ## Requirements
 
 - Python 3.11
@@ -169,7 +171,29 @@ For the experimental conditional GAN augmentation pipeline and a 50-epoch classi
 run with per-epoch checkpoints and learning curves, see the
 [conditional GAN experiment guide](docs/conditional-gan-experiment.md).
 
-## Recorded experiment
+## Completed architecture comparison
+
+ResNet-50 and EfficientNet-B0 were trained from ImageNet weights with the same configuration except for architecture: seed 42, 224 x 224 inputs, batch size 32, AdamW learning rate 0.0003, weighted cross-entropy, and a maximum of 100 epochs. The best checkpoint was selected using validation macro-F1.
+
+The audited comparison contains 119,947 training, 25,701 validation, and 25,703 test images across 21 classes. Two byte-identical validation images with conflicting labels were excluded from a separate copy; train and test membership stayed unchanged. Both evaluations used the same test split hash and class vocabulary.
+
+| Metric | ResNet-50 | EfficientNet-B0 |
+| --- | ---: | ---: |
+| Accuracy | 85.95% | 86.49% |
+| Balanced accuracy | 72.05% | 72.48% |
+| Macro F1 | 71.56% | 73.11% |
+
+These are single-seed, image-level results. Patient/slide isolation remains unverified, and repeated seeds are needed to assess training variability. Offline evaluation does not activate a model in the application.
+
+To repeat this two-model protocol after preparing the audited comparison splits, choose a new output directory:
+
+```bash
+python ml/scripts/run_architecture_comparison.py --architectures resnet50 efficientnet_b0 --full --output-dir models/resnet50_efficientnet_b0_comparison_new
+```
+
+See the [comparison and split-audit guide](docs/resnet50-comparison.md) for preparation steps and completed integration checks, and [MODEL_CARD.md](MODEL_CARD.md) for the full metric table and limitations.
+
+## Historical EfficientNet-B0 experiment
 
 The historical EfficientNet-B0 run used 171,353 valid images across 21 classes, seed 42, 224 × 224 inputs, batch size 32, weighted cross-entropy, and 40 epochs on an NVIDIA GeForce RTX 5080.
 
