@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, HttpUrl, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +49,16 @@ class Settings(BaseSettings):
     auth_rate_window_seconds: int = Field(default=60, ge=1, le=3_600)
     prediction_rate_limit: int = Field(default=30, ge=1, le=10_000)
     prediction_rate_window_seconds: int = Field(default=60, ge=1, le=3_600)
+    inference_queue_size: int = Field(default=4, ge=1, le=100)
+    inference_queue_timeout_seconds: int = Field(default=30, ge=1, le=120)
+    smtp_host: str = ""
+    smtp_port: int = Field(default=587, ge=1, le=65535)
+    smtp_username: str = ""
+    smtp_password: SecretStr = Field(default=SecretStr(""), repr=False)
+    smtp_from: str = ""
+    smtp_security: Literal["starttls", "ssl"] = "starttls"
+    password_reset_url: HttpUrl = HttpUrl("http://localhost:5173/reset-password")
+    password_reset_expire_minutes: int = Field(default=30, ge=5, le=60)
     gradcam_retention_days: int = Field(default=30, ge=1, le=3_650)
     inference_temp_retention_hours: int = Field(default=24, ge=1, le=8_760)
     retention_cleanup_interval_seconds: int = Field(default=3600, ge=1, le=86_400)
@@ -64,6 +74,10 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_security_settings(self) -> Settings:
         self.project_root = self.project_root.expanduser().resolve()
+        if self.password_reset_url.query or self.password_reset_url.fragment:
+            raise ValueError("PASSWORD_RESET_URL must not contain a query or fragment")
+        if self.smtp_host and self.app_environment == "production" and self.password_reset_url.scheme != "https":
+            raise ValueError("PASSWORD_RESET_URL must use HTTPS when email recovery is enabled in production")
 
         if self.database_url.startswith("sqlite:///./"):
             relative_path = self.database_url.removeprefix("sqlite:///./")

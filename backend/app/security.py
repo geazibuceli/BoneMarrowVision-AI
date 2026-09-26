@@ -28,7 +28,7 @@ def verify_dummy_password(password: str) -> None:
     verify_password(password, _DUMMY_PASSWORD_HASH)
 
 
-def create_access_token(subject: str) -> str:
+def create_access_token(subject: str, session_version: int = 0) -> str:
     issued_at = datetime.now(UTC)
     expires = issued_at + timedelta(minutes=settings.jwt_expire_minutes)
     claims = {
@@ -39,11 +39,12 @@ def create_access_token(subject: str) -> str:
         "iss": settings.jwt_issuer,
         "aud": settings.jwt_audience,
         "jti": uuid4().hex,
+        "session_version": session_version,
     }
     return jwt.encode(claims, settings.jwt_secret, algorithm="HS256")
 
 
-def decode_subject(token: str) -> str:
+def decode_access_token(token: str) -> dict:
     try:
         payload = jwt.decode(
             token,
@@ -56,6 +57,10 @@ def decode_subject(token: str) -> str:
         subject = payload.get("sub")
         if not isinstance(subject, str) or not subject or payload.get("type") != "access":
             raise ValueError("Missing token subject")
-        return subject
+        return payload
     except (InvalidTokenError, ValueError) as error:
         raise ValueError("Invalid authentication token") from error
+
+
+def decode_subject(token: str) -> str:
+    return decode_access_token(token)["sub"]

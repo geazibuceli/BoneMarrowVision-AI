@@ -25,6 +25,9 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(Text)
+    session_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    reset_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     full_name: Mapped[str] = mapped_column(String(200))
     role: Mapped[str] = mapped_column(String(32), default="researcher")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
@@ -69,6 +72,7 @@ class Experiment(Base):
 
 class Prediction(Base):
     __tablename__ = "predictions"
+    __table_args__ = (Index("ix_predictions_owner_created", "user_id", "created_at", "id"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     model_id: Mapped[int | None] = mapped_column(ForeignKey("ml_models.id"), nullable=True)

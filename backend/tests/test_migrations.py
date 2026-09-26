@@ -28,7 +28,29 @@ def test_initial_migration_creates_fresh_database(workspace_tmp_path: Path, monk
     inspector = inspect(engine)
     assert set(Base.metadata.tables).issubset(inspector.get_table_names())
     with engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0001_initial"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0002_account_recovery"
+    engine.dispose()
+
+
+def test_recovery_migration_preserves_existing_accounts(workspace_tmp_path, monkeypatch):
+    database_url = _database_url(workspace_tmp_path / "upgrade.db")
+    monkeypatch.setattr(settings, "database_url", database_url)
+    config = _alembic_config()
+    command.upgrade(config, "0001_initial")
+    engine = create_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(text(
+            "INSERT INTO users (id,email,password_hash,full_name,role,created_at,updated_at) "
+            "VALUES (1,'preserved@example.com','existing-hash','Existing User','researcher',"
+            "CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)"
+        ))
+    command.upgrade(config, "head")
+    with engine.connect() as connection:
+        row = connection.execute(text("SELECT email,password_hash,session_version,reset_token_hash FROM users")).one()
+        assert tuple(row) == ("preserved@example.com", "existing-hash", 0, None)
+    command.downgrade(config, "0001_initial")
+    with engine.connect() as connection:
+        assert connection.scalar(text("SELECT password_hash FROM users")) == "existing-hash"
     engine.dispose()
 
 
@@ -56,5 +78,5 @@ def test_initial_migration_adopts_compatible_legacy_database(workspace_tmp_path:
     assert "mlflow_run_id" not in {column["name"] for column in inspector.get_columns("experiments")}
     assert "input_image_path" not in {column["name"] for column in inspector.get_columns("predictions")}
     with engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0001_initial"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0002_account_recovery"
     engine.dispose()

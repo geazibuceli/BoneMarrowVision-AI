@@ -37,6 +37,20 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=32, max_length=128, repr=False)
+    password: str = Field(min_length=8, max_length=256, repr=False)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=256, repr=False)
+    password: str = Field(min_length=8, max_length=256, repr=False)
+
+
 class PredictionModelResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
