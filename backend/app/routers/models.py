@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/v1/models", tags=["models"])
 class ModelCreate(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     version: str = Field(min_length=1, max_length=80)
-    architecture: Literal["baseline_cnn", "resnet50", "efficientnet_b0"]
+    architecture: Literal["baseline_cnn", "resnet50", "efficientnet_b0", "convnext_tiny"]
     checkpoint_path: str = Field(min_length=1, max_length=1000)
     config_path: str = Field(min_length=1, max_length=1000)
     metrics_json: dict[str, Any] = Field(default_factory=dict)
