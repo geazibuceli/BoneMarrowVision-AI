@@ -50,7 +50,7 @@ function Registration({ onRegistered, busy, setBusy }: {
         <label>Name<input name="name" required maxLength={200} /></label>
         <label>Version<input name="version" required maxLength={80} /></label>
         <label htmlFor="model-architecture">Architecture</label><select id="model-architecture" name="architecture" defaultValue="efficientnet_b0">
-          <option value="efficientnet_b0">EfficientNet-B0</option><option value="resnet50">ResNet50</option><option value="baseline_cnn">Baseline CNN</option>
+          <option value="efficientnet_b0">EfficientNet-B0</option><option value="resnet50">ResNet50</option><option value="convnext_tiny">ConvNeXt-Tiny</option><option value="baseline_cnn">Baseline CNN</option>
         </select>
         <label>Checkpoint path<input name="checkpoint" required maxLength={1000} placeholder="models/best_model.pt" /></label>
         <label>Configuration path<input name="config" required maxLength={1000} placeholder="ml/configs/efficientnet_b0.yaml" /></label>
