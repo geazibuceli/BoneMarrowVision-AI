@@ -6,6 +6,8 @@ venv/
 .mypy_cache/
 .ruff_cache/
 .pytest-audit-*/
+.pytest-*/
+pytest-cache-files-*/
 .audit-*/
 node_modules/
 dist/
