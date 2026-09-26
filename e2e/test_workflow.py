@@ -63,6 +63,28 @@ def test_analysis_history_and_session(application, browser, width):
         expect(page).to_have_url(f'{application["url"]}/history?page=2')
         page.reload()
         expect(page.locator('tbody tr')).to_have_count(6)
+        page.get_by_label('Class (exact name)').fill('missing-class')
+        page.get_by_role('button', name='Apply filters').click()
+        expect(page.locator('tbody tr')).to_have_count(0)
+        expect(page.get_by_text('Page 1', exact=True)).to_be_visible()
+        page.get_by_label('Class (exact name)').fill(prediction)
+        page.get_by_role('button', name='Apply filters').click()
+        expect(page.locator('tbody tr')).to_have_count(25)
+        with page.expect_download() as download_info:
+            page.get_by_role('button', name='Export filtered CSV').click()
+        download = download_info.value
+        assert download.suggested_filename == 'predictions.csv'
+        import csv
+        from pathlib import Path
+        with Path(download.path()).open(encoding='utf-8', newline='') as stream:
+            exported = list(csv.DictReader(stream))
+        assert len(exported) == 31
+        assert all(row['class'] == prediction for row in exported)
+        page.get_by_role('button', name='Next', exact=True).click()
+        page.get_by_role('link', name='View prediction 1', exact=True).click()
+        page.get_by_role('link', name='Back to history').click()
+        expect(page.get_by_label('Class (exact name)')).to_have_value(prediction)
+        expect(page.locator('tbody tr')).to_have_count(6)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         page.get_by_role('link', name='Analyze', exact=True).click()
         page.locator('input[type=file]').set_input_files({'name': 'bad.txt', 'mimeType': 'text/plain', 'buffer': b'bad'})
@@ -84,6 +106,43 @@ def test_analysis_history_and_session(application, browser, width):
         assert not errors, errors
     except Exception:
         page.screenshot(path=str(run / 'failure.png'), full_page=True)
+        raise
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize('width', [1440, 360], ids=['desktop', 'mobile'])
+def test_password_change_and_recovery_feedback(application, browser, width):
+    context = browser.new_context(viewport={'width': width, 'height': 900})
+    page = context.new_page()
+    try:
+        page.goto(f'{application["url"]}/login')
+        page.get_by_role('link', name='Forgot your password?').click()
+        expect(page.get_by_role('heading', name='Recover your account')).to_be_visible()
+        page.get_by_label('Email').fill('admin@example.com')
+        page.get_by_role('button', name='Send reset link').click()
+        expect(page.get_by_role('alert')).to_contain_text('Email recovery is not configured')
+        page.goto(f'{application["url"]}/login')
+        page.get_by_label('Email', exact=True).fill('admin@example.com')
+        page.get_by_label('Password', exact=True).fill(application['password'])
+        page.get_by_role('button', name='Sign in', exact=True).click()
+        page.get_by_role('link', name='Password', exact=True).click()
+        expect(page.get_by_role('heading', name='Change password', exact=True)).to_be_visible()
+        page.get_by_label('Current password', exact=True).fill(application['password'])
+        page.get_by_label('New password', exact=True).fill('Changed-password-123!')
+        page.get_by_label('Confirm new password', exact=True).fill('Changed-password-123!')
+        page.get_by_role('button', name='Update password').click()
+        expect(page.get_by_text('Password updated. Sign in again on all devices.')).to_be_visible()
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        page.goto(f'{application["url"]}/login')
+        page.get_by_label('Email', exact=True).fill('admin@example.com')
+        page.get_by_label('Password', exact=True).fill('Changed-password-123!')
+        page.get_by_role('button', name='Sign in', exact=True).click()
+        expect(page.get_by_role('heading', name='Dashboard', exact=True)).to_be_visible()
+        response = application['client'].get('/auth/me', headers=application['admin_headers'])
+        assert response.status_code == 401
+    except Exception:
+        page.screenshot(path=str(application['run'] / 'failure.png'), full_page=True)
         raise
     finally:
         context.close()

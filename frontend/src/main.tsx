@@ -23,6 +23,7 @@ import {
 } from 'react-router-dom';
 import {
   getExperiments,
+  getInferenceQueue,
   getOverview,
   getPrediction,
   getPredictions,
@@ -34,6 +35,9 @@ import {
 import { AuthProvider, useAuth } from './auth';
 import { ExperimentRunDetails, ExperimentRuns } from './ExperimentRuns';
 import { ModelRegistry } from './ModelRegistry';
+import { PasswordForm } from './PasswordForm';
+import { HistoryFilters } from './HistoryFilters';
+import type { HistoryFilters as Filters } from './api';
 import type { Experiment, Prediction } from './types';
 import './styles.css';
 
@@ -51,6 +55,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/login': 'Sign in',
   '/models': 'Model registry',
   '/register': 'Register',
+  '/forgot-password': 'Recover account',
+  '/reset-password': 'Reset password',
+  '/change-password': 'Change password',
 };
 
 function errorMessage(reason: unknown, fallback: string): string {
@@ -149,6 +156,7 @@ function Shell({ children }: { children: ReactNode }) {
           <NavLink to="/history">History</NavLink>
           <NavLink to="/models">Models</NavLink>
           <NavLink to="/experiments">Experiments</NavLink>
+          <NavLink to="/change-password">Password</NavLink>
         </>}
         {status === 'checking' && <span className="nav-status" aria-live="polite">Checking session…</span>}
         {status === 'anonymous' && <NavLink to="/login">Sign in</NavLink>}
@@ -249,6 +257,7 @@ function Auth({ mode }: { mode: 'login' | 'register' }) {
       </button>
       <div className="form-message" aria-live="assertive" aria-atomic="true">{error && <p id="auth-error" className="error">{error}</p>}</div>
     </form>
+    <p>{mode === 'login' && <Link to="/forgot-password">Forgot your password?</Link>}</p>
     <p className="muted">{mode === 'login' ? <Link to="/register">Create an account</Link> : <Link to="/login">Already registered?</Link>}</p>
   </main>;
 }
@@ -318,6 +327,18 @@ function Analyze() {
   const [result, setResult] = useState<Prediction | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [queue, setQueue] = useState<{ active: boolean; waiting: number } | null>(null);
+  useEffect(() => {
+    if (!busy) return;
+    let active = true;
+    const poll = async () => {
+      try { const value = await getInferenceQueue(token); if (active) setQueue(value); }
+      catch { if (active) setQueue(null); }
+    };
+    void poll();
+    const timer = window.setInterval(() => void poll(), 3000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [busy, token]);
   const [dragActive, setDragActive] = useState(false);
   const [announcement, setAnnouncement] = useState('No image selected.');
 
@@ -432,6 +453,7 @@ function Analyze() {
       {busy ? 'Analyzing…' : 'Run analysis'}
     </button>
     <output className="sr-only" aria-live="polite" aria-atomic="true">{announcement}</output>
+    {busy && <output>Analysis submitted. Requests are processed one at a time. {queue ? `${queue.waiting} waiting; ${queue.active ? 'one request is processing' : 'processor is available'}.` : 'Waiting for the server response.'}</output>}
     {error && <p className="error" role="alert">{error}</p>}
     {result && <>
       <PredictionResult result={result} />
@@ -469,19 +491,22 @@ function History() {
   const [params, setParams] = useSearchParams();
   const requestedPage = Number(params.get('page') ?? '1');
   const page = Number.isSafeInteger(requestedPage) && requestedPage >= 1 && requestedPage <= MAX_HISTORY_PAGE ? requestedPage : 1;
-  return <HistoryPage key={page} page={page} changePage={(nextPage) => setParams({ page: String(nextPage) })} />;
+  const filters: Filters = Object.fromEntries(['predicted_class', 'model_id', 'low_confidence', 'date_from', 'date_to'].map((key) => [key, params.get(key) ?? '']));
+  return <HistoryPage key={params.toString()} page={page} filters={filters} onApply={(next) => setParams(Object.fromEntries(Object.entries(next).filter(([, value]) => Boolean(value))) as Record<string, string>)} changePage={(nextPage) => { const next = new URLSearchParams(params); next.set('page', String(nextPage)); setParams(next); }} />;
 }
 
-function HistoryPage({ page, changePage }: { page: number; changePage: (page: number) => void }) {
+function HistoryPage({ page, changePage, filters, onApply }: { page: number; changePage: (page: number) => void; filters: Filters; onApply: (filters: Filters) => void }) {
   const { token } = useAuth();
+  const location = useLocation();
   // Fetch one extra record to detect the next page without a separate count request.
-  const loadPredictions = useCallback(() => getPredictions(token, HISTORY_PAGE_SIZE + 1, (page - 1) * HISTORY_PAGE_SIZE), [token, page]);
+  const loadPredictions = useCallback(() => getPredictions(token, HISTORY_PAGE_SIZE + 1, (page - 1) * HISTORY_PAGE_SIZE, filters), [token, page, filters]);
   const predictions = useResource(loadPredictions);
   const rows = predictions.data?.slice(0, HISTORY_PAGE_SIZE);
 
   return <main id="main-content" className="workspace">
     <p className="eyebrow">Research log</p>
     <h1>Prediction history</h1>
+    <HistoryFilters filters={filters} onApply={onApply} />
     <p className="muted">Times are shown in {LOCAL_TIME_ZONE}.</p>
     {predictions.loading && <LoadingMessage>Loading prediction history…</LoadingMessage>}
     {predictions.error && <ErrorMessage message={predictions.error} retry={predictions.reload} />}
@@ -489,7 +514,7 @@ function HistoryPage({ page, changePage }: { page: number; changePage: (page: nu
       <table>
         <caption className="sr-only">Predictions saved by this account</caption>
         <thead><tr><th scope="col">Class</th><th scope="col">Confidence</th><th scope="col">Model version</th><th scope="col">Date and time</th><th scope="col">Result</th></tr></thead>
-        <tbody>{rows?.map((row) => <tr key={row.id}><td>{row.predicted_class}</td><td>{(row.confidence * 100).toFixed(1)}%{row.low_confidence && <span className="warning"> (Low confidence)</span>}</td><td>{row.model ? `${row.model.name} · ${row.model.version}` : 'Unavailable'}</td><td><time dateTime={row.created_at}>{formatTimestamp(row.created_at)}</time></td><td><Link to={`/history/${row.id}`} state={{ historyPage: page }} aria-label={`View prediction ${row.id}`}>View result</Link></td></tr>)}</tbody>
+        <tbody>{rows?.map((row) => <tr key={row.id}><td>{row.predicted_class}</td><td>{(row.confidence * 100).toFixed(1)}%{row.low_confidence && <span className="warning"> (Low confidence)</span>}</td><td>{row.model ? `${row.model.name} · ${row.model.version}` : 'Unavailable'}</td><td><time dateTime={row.created_at}>{formatTimestamp(row.created_at)}</time></td><td><Link to={`/history/${row.id}`} state={{ historyPage: page, historySearch: location.search }} aria-label={`View prediction ${row.id}`}>View result</Link></td></tr>)}</tbody>
       </table>
       {predictions.data.length === 0 && <p className="empty">{page === 1 ? 'No predictions recorded for this account.' : 'No predictions on this page.'}</p>}
     </section>}
@@ -511,7 +536,8 @@ function PredictionDetailsContent({ predictionId }: { predictionId: string }) {
   const { token } = useAuth();
   const location = useLocation();
   const historyPage = (location.state as { historyPage?: number } | null)?.historyPage;
-  const backPath = typeof historyPage === 'number' && Number.isSafeInteger(historyPage) && historyPage > 1 && historyPage <= MAX_HISTORY_PAGE ? `/history?page=${historyPage}` : '/history';
+  const historySearch = (location.state as { historySearch?: string } | null)?.historySearch;
+  const backPath = historySearch?.startsWith('?') ? `/history${historySearch}` : typeof historyPage === 'number' && Number.isSafeInteger(historyPage) && historyPage > 1 && historyPage <= MAX_HISTORY_PAGE ? `/history?page=${historyPage}` : '/history';
   const loadPrediction = useCallback(() => getPrediction(predictionId, token), [predictionId, token]);
   const prediction = useResource(loadPrediction);
 
@@ -584,6 +610,9 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Auth mode="login" />} />
       <Route path="/register" element={<Auth mode="register" />} />
+      <Route path="/forgot-password" element={<PasswordForm key="forgot" mode="forgot-password" />} />
+      <Route path="/reset-password" element={<PasswordForm key="reset" mode="reset-password" />} />
+      <Route path="/change-password" element={<PasswordForm key="change" mode="change-password" />} />
       <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
       <Route path="/analyze" element={<Protected><Analyze /></Protected>} />
       <Route path="/history" element={<Protected><History /></Protected>} />

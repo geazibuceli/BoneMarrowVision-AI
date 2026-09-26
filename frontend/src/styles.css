@@ -617,3 +617,15 @@ footer {
   overflow-wrap: anywhere;
   white-space: normal;
 }
+
+.history-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 1rem;
+  margin-block: 2rem;
+}
+.history-filters label { display: grid; gap: 0.4rem; }
+.history-filters input, .history-filters select {
+  width: 100%; min-width: 0; padding: 0.7rem; font: inherit;
+}
+.history-filters select:focus-visible { outline: 3px solid #176b87; outline-offset: 3px; }

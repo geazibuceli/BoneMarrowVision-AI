@@ -204,9 +204,36 @@ export function uploadPrediction(file: File, token: string): Promise<Prediction>
   );
 }
 
-export function getPredictions(token: string, limit = 100, offset = 0): Promise<Prediction[]> {
+export type HistoryFilters = { predicted_class?: string; model_id?: string; low_confidence?: string; date_from?: string; date_to?: string };
+
+export function getHistoryFilterOptions(token: string): Promise<{ classes: string[]; models: { id: number; name: string; version: string }[] }> {
+  return request('/predictions/filter-options', { headers: authorization(token) }, 'Could not load filter options');
+}
+
+function historyQuery(filters: HistoryFilters): URLSearchParams {
+  return new URLSearchParams(Object.entries(filters).filter(([, value]) => Boolean(value)) as [string, string][]);
+}
+
+export function getPredictions(token: string, limit = 100, offset = 0, filters: HistoryFilters = {}): Promise<Prediction[]> {
   const query = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  historyQuery(filters).forEach((value, key) => query.set(key, value));
   return request<Prediction[]>(`/predictions?${query}`, { headers: authorization(token) }, 'Could not load prediction history');
+}
+
+export async function exportPredictions(token: string, filters: HistoryFilters): Promise<Blob> {
+  const response = await fetchResponse(`${API_URL}/predictions/export?${historyQuery(filters)}`, { headers: authorization(token) });
+  if (!response.ok) await readJsonResponse<never>(response, 'Could not export predictions', true);
+  return response.blob();
+}
+
+export function passwordRequest(path: 'forgot-password' | 'reset-password' | 'change-password', payload: Record<string, string>, token?: string): Promise<{ message: string }> {
+  return request(`/auth/${path}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? authorization(token) : {}) }, body: JSON.stringify(payload),
+  }, 'Could not update password');
+}
+
+export function getInferenceQueue(token: string): Promise<{ active: boolean; waiting: number; capacity: number }> {
+  return request('/predictions/queue', { headers: authorization(token) }, 'Could not load analysis queue');
 }
 
 export function getPrediction(id: string, token: string): Promise<Prediction> {
