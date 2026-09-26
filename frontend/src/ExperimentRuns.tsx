@@ -26,7 +26,7 @@ export function ExperimentRuns() {
     {runs?.length === 0 && <p>No local training runs are available.</p>}
     {!!runs?.length && <section className="table-wrap" tabIndex={0} aria-label="Local training runs">
       <table><thead><tr><th scope="col">Run</th><th scope="col">Stage</th></tr></thead>
-        <tbody>{runs.map((run) => <tr key={run.id}><td><Link to={`/experiments/runs/${encodeURIComponent(run.id)}`}>{run.id}</Link></td><td>{String(run.status.stage ?? 'unknown').replace(/_/g, ' ')}</td></tr>)}</tbody>
+        <tbody>{runs.map((run) => <tr key={run.id}><td><Link to={`/experiments/runs/${encodeURIComponent(run.id)}`}>{run.name ?? run.id}</Link></td><td>{String(run.status.stage ?? 'unknown').replace(/_/g, ' ')}</td></tr>)}</tbody>
       </table>
     </section>}
   </section>;
@@ -85,6 +85,25 @@ function JsonDetails({ title, value }: { title: string; value: unknown }) {
   return value ? <details><summary>{title}</summary><pre className="experiment-json">{JSON.stringify(value, null, 2)}</pre></details> : null;
 }
 
+function ArchitectureResults({ run }: { run: ExperimentRun }) {
+  const rows = run.architectures ?? [];
+  return <section aria-label="Architecture results"><h2>Architecture comparison</h2>
+    <p>{run.matching_test_splits ? 'Evaluations share the same test split and class order.' : 'Check test split hashes before comparing results across runs.'} Single-seed, image-level results; patient/slide isolation is unverified.</p>
+    <section className="table-wrap" tabIndex={0} aria-label="Architecture test metrics"><table>
+      <thead><tr><th scope="col">Architecture</th><th scope="col">Accuracy</th><th scope="col">Balanced accuracy</th><th scope="col">Macro F1</th></tr></thead>
+      <tbody>{rows.map((row) => <tr key={row.architecture}><th scope="row">{row.architecture}</th><td>{metric(row.test_report?.accuracy)}</td><td>{metric(row.test_report?.balanced_accuracy)}</td><td>{metric(row.test_report?.macro_f1)}</td></tr>)}</tbody>
+    </table></section>
+    {rows.length === 0 && <p>Architecture artifacts are not available yet.</p>}
+    {rows.map((row) => <section key={row.architecture}>
+      <h3>{row.architecture}</h3>
+      {!row.test_report && <p>Test evaluation is not available yet.</p>}
+      <LearningCurve history={row.history} title={`${row.architecture}: validation macro F1`} />
+      <ClassReport title={`${row.architecture}: per-class test metrics`} report={row.test_report} />
+      <JsonDetails title={`${row.architecture}: training configuration`} value={row.configuration} />
+    </section>)}
+  </section>;
+}
+
 function ClassReport({ title, report }: { title: string; report: Record<string, unknown> | null }) {
   if (!report) return null;
   const names = report.class_names;
@@ -132,7 +151,7 @@ function RunDetails({ id }: { id: string }) {
         if (!current) return;
         setRun(result);
         setError('');
-        if (!['completed', 'failed'].includes(String(result.status.stage))) timer = setTimeout(() => { void refresh(); }, 15000);
+        if (!['completed', 'failed', 'smoke_completed'].includes(String(result.status.stage))) timer = setTimeout(() => { void refresh(); }, 15000);
       } catch (reason) { if (current) setError(message(reason)); }
     };
     void refresh();
@@ -148,6 +167,7 @@ function RunDetails({ id }: { id: string }) {
       {typeof run.status.error === 'string' && <p role="alert">{run.status.error}</p>}
       {typeof run.status.updated_at === 'string' && <p>Last stage update: <time dateTime={run.status.updated_at}>{new Date(run.status.updated_at).toLocaleString()}</time></p>}
       {typeof run.status.elapsed_seconds === 'number' && <p>Elapsed at last stage update: {(run.status.elapsed_seconds / 3600).toFixed(2)} hours</p>}
+      {run.kind === 'architecture' ? <ArchitectureResults run={run} /> : <>
       {run.comparison ? <Comparison data={run.comparison} /> : <p>Test comparison is not available yet.</p>}
       <LearningCurve history={run.control_history} title="Real-only control: validation macro F1" />
       <LearningCurve history={run.history} title="GAN augmented: validation macro F1" />
@@ -157,6 +177,7 @@ function RunDetails({ id }: { id: string }) {
       <JsonDetails title="Real training class counts" value={run.class_counts} />
       <JsonDetails title="Stage history" value={run.status.stages} />
       <JsonDetails title="Comparison artifact and checkpoint hashes" value={run.comparison} />
+      </>}
     </>}
   </main>;
 }
