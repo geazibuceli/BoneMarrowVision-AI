@@ -74,3 +74,43 @@ def test_invalid_history_returns_recoverable_error(client, run_headers, workspac
     response = client.get("/api/v1/experiments/runs/invalid-history", headers=run_headers)
     assert response.status_code == 503
     assert response.json()["detail"] == "Experiment artifact is unavailable or invalid"
+
+
+def test_architecture_runs_are_visible_and_sanitize_private_paths(client, run_headers, workspace_tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "project_root", workspace_tmp_path)
+    monkeypatch.setattr(settings, "model_dir", "models")
+    directory = workspace_tmp_path / "models/comparison"
+    directory.mkdir(parents=True)
+    (directory / "status.json").write_text(json.dumps({
+        "status": "completed", "steps": [{"command": ["C:/private/python.exe"]}],
+        "error": "C:/private/error", "inputs": {},
+    }))
+    for architecture in ("resnet50", "convnext_tiny"):
+        (directory / f"{architecture}.yaml").write_text(f"architecture: {architecture}\nseed: 42\n")
+        (directory / architecture).mkdir()
+        report = {key: 0.8 for key in ("accuracy", "balanced_accuracy", "macro_precision",
+                                      "macro_recall", "macro_f1", "weighted_f1")}
+        report.update(class_names=["A"], confusion_matrix=[[2]], provenance={
+            "test_split": {"sha256": "a" * 64, "path": "C:/private/test.json"},
+        })
+        (directory / architecture / "test_report.json").write_text(json.dumps(report))
+    listing = client.get("/api/v1/experiments/runs", headers=run_headers).json()
+    assert listing[0]["id"] == "models~comparison"
+    response = client.get("/api/v1/experiments/runs/models~comparison", headers=run_headers)
+    assert response.status_code == 200
+    assert "private" not in response.text
+    assert response.json()["matching_test_splits"] is True
+    assert len(response.json()["architectures"]) == 2
+    (directory / "convnext_tiny/test_report.json").unlink()
+    result = client.get("/api/v1/experiments/runs/models~comparison", headers=run_headers).json()
+    assert result["matching_test_splits"] is False
+    assert result["architectures"][1]["test_report"] is None
+    assert client.get("/api/v1/experiments/runs/models~comparison").status_code == 401
+
+
+@pytest.mark.parametrize("name", ["models~..", "models~../secret", "models~a/b", "models~C:\\Windows"])
+def test_architecture_paths_cannot_escape_root(name):
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as error:
+        run_directory(name)
+    assert error.value.status_code == 404
