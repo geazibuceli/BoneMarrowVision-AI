@@ -241,8 +241,10 @@ export function getExperiments(token: string): Promise<Experiment[]> {
   return request<Experiment[]>('/experiments', { headers: authorization(token) }, 'Could not load experiments');
 }
 
-export type RunSummary = { id: string; status: Record<string, unknown> };
+export type RunSummary = { id: string; name?: string; kind?: string; status: Record<string, unknown> };
 export type ExperimentRun = RunSummary & {
+  architectures?: { architecture: string; configuration: Record<string, unknown>; history: Record<string, number>[] | null; test_report: Record<string, unknown> | null }[];
+  matching_test_splits?: boolean;
   configuration: Record<string, unknown> | null;
   comparison: Record<string, unknown> | null;
   history: Record<string, number>[] | null;
