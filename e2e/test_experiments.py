@@ -62,6 +62,25 @@ def test_local_experiment_details(application, browser, width):
         expect(page.get_by_role("heading", name="Experiment details")).to_be_visible()
         page.get_by_role("link", name="Back to experiments").click()
         expect(page.get_by_role("link", name="paired-fixture", exact=True)).to_be_visible()
+        architecture_run = application["run"] / "models/architecture-fixture"
+        (architecture_run / "convnext_tiny").mkdir(parents=True)
+        (architecture_run / "status.json").write_text('{"status":"completed"}')
+        (architecture_run / "convnext_tiny.yaml").write_text('architecture: convnext_tiny\nseed: 42\n')
+        (architecture_run / "convnext_tiny/best.history.json").write_text(json.dumps(history))
+        (architecture_run / "convnext_tiny/test_report.json").write_text(json.dumps({
+            "accuracy": 0.85, "balanced_accuracy": 0.66, "macro_precision": 0.72,
+            "macro_recall": 0.66, "macro_f1": 0.68, "weighted_f1": 0.85,
+            "class_names": ["A", "B"], "confusion_matrix": [[8, 2], [1, 9]],
+            "provenance": {"test_split": {"sha256": "a" * 64}},
+        }))
+        page.get_by_role("button", name="Refresh runs", exact=True).click()
+        page.get_by_role("link", name="architecture-fixture", exact=True).click()
+        expect(page.get_by_role("heading", name="Architecture comparison", exact=True)).to_be_visible()
+        expect(page.get_by_role("cell", name="68.00%", exact=True)).to_be_visible()
+        expect(page.get_by_role("img", name="convnext_tiny: validation macro F1", exact=False)).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.reload()
+        expect(page.get_by_role("cell", name="68.00%", exact=True)).to_be_visible()
         page.goto(f'{application["url"]}/experiments/runs/missing')
         expect(page.get_by_role("alert")).to_have_text("Experiment run not found")
         assert not errors, errors
