@@ -61,7 +61,7 @@ The corrected copy is audited again before a manifest is created.
 Run the automated sequence in a new output directory:
 
 ```powershell
-./.venv/Scripts/python.exe ml/scripts/run_architecture_comparison.py --full --output-dir models/architecture_comparison_seed42_run2
+./.venv/Scripts/python.exe ml/scripts/run_architecture_comparison.py --architectures resnet50 efficientnet_b0 --full --output-dir models/resnet50_efficientnet_b0_comparison_new
 ```
 
 The runner refuses to reuse an existing output directory. Choose a new suffix for
@@ -74,7 +74,9 @@ metrics only after checking matching test hashes and class vocabularies.
 
 Omit `--full` to run smoke checks only. Follow `status.json` and the per-step
 `*.stdout.log` / `*.stderr.log` files inside the output directory. A failure stops
-the sequence and records its error. The runner does not resume interrupted training.
+the sequence and records its error. The runner does not automatically resume its
+sequence. New classifier runs can be continued with `train.py --resume`; see
+[training recovery](training-recovery.md), then run evaluation and analysis explicitly.
 Keep the host awake for the duration of the experiment. No registry activation is
 performed automatically.
 
@@ -135,3 +137,10 @@ checks do not constitute a browser upload-flow test. Registration and container
 inference evidence are in `final_validation/docker_registration.json` and
 `final_validation/docker_inference.json`. Local administrator credentials are kept
 in an ignored local file, not in this document or source control.
+
+## ConvNeXt-Tiny extension
+
+ConvNeXt-Tiny completed the same audited splits and configuration on September 25,
+2026. See the [run record](convnext-comparison.md) and the updated
+[three-model comparison](../MODEL_CARD.md). The application checks above apply
+only to the two September 23 checkpoints.
