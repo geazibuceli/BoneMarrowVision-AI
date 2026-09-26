@@ -16,7 +16,13 @@ from bone_marrow_vision.training.checkpoints import (
     clone_state_dict,
     final_checkpoint_path,
 )
-from bone_marrow_vision.training.reproducibility import capture_rng_state
+from bone_marrow_vision.training.recovery import (
+    loader_state,
+    recovery_path,
+    restore_loader,
+    validated_recovery,
+)
+from bone_marrow_vision.training.reproducibility import capture_rng_state, restore_rng_state
 
 
 def build_loss(strategy: str, labels: list[int], num_classes: int) -> nn.Module:
@@ -114,6 +120,7 @@ def train_model(
     class_names: list[str],
     *,
     provenance: dict[str, Any] | None = None,
+    resume: str | Path | None = None,
 ) -> list[dict[str, Any]]:
     """Train and write distinct, self-describing best and final checkpoints."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -144,8 +151,27 @@ def train_model(
     best_f1, best_epoch, stale_epochs = -1.0, 0, 0
     history: list[dict[str, Any]] = []
     best_checkpoint: dict[str, Any] | None = None
+    start_epoch = 0
+    if resume is not None:
+        restored = validated_recovery(resume, config, class_names, provenance, device)
+        state = restored["training_state"]
+        recovery = restored["recovery"]
+        restore_loader(train_loader, recovery["train_loader"])
+        restore_loader(valid_loader, recovery["valid_loader"])
+        model.load_state_dict(restored["model_state"], strict=True)
+        optimizer.load_state_dict(state["optimizer"])
+        scheduler.load_state_dict(state["scheduler"])
+        scaler.load_state_dict(state["scaler"])
+        history = restored["history"]
+        start_epoch = restored["epoch"]
+        best_epoch = restored["best_epoch"]
+        best_f1 = restored["best_validation_macro_f1"]
+        stale_epochs = recovery["stale_epochs"]
+        best_checkpoint = recovery["best_checkpoint"]
+        restore_rng_state(state["rng"])
+        print(f"Resuming after completed epoch {start_epoch}", flush=True)
 
-    for epoch in range(int(config["epochs"])):
+    for epoch in range(start_epoch, int(config["epochs"])):
         model.train()
         train_loss = 0.0
         train_correct = 0
@@ -195,6 +221,22 @@ def train_model(
             atomic_torch_save(best_checkpoint, checkpoint_path)
         else:
             stale_epochs += 1
+        latest = _checkpoint_payload(
+            role="latest", model=model, optimizer=optimizer, scheduler=scheduler,
+            scaler=scaler, config=config, class_names=class_names, history=history,
+            epoch=epoch + 1, best_epoch=best_epoch, best_f1=best_f1, provenance=provenance,
+        )
+        latest["recovery_version"] = 1
+        latest["recovery"] = {
+            "best_checkpoint": best_checkpoint,
+            "stale_epochs": stale_epochs,
+            "train_loader": loader_state(train_loader),
+            "valid_loader": loader_state(valid_loader),
+            "device": device.type,
+            "cuda_devices": torch.cuda.device_count() if device.type == "cuda" else 0,
+        }
+        atomic_torch_save(latest, recovery_path(checkpoint_path))
+        del latest
         interval = int(config.get("checkpoint_every", 0))
         if interval > 0 and (epoch + 1) % interval == 0:
             snapshot = _checkpoint_payload(
