@@ -3,9 +3,11 @@ from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.database import get_db
 from app.experiment_artifacts import (
     ARTIFACTS,
+    architecture_details,
     artifact_path,
     read_artifact,
     run_directory,
@@ -36,20 +38,20 @@ def list_runs(
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0, le=1_000_000),
 ):
-    root = runs_root()
-    if not root.is_dir():
-        return []
     summaries = []
-    for path in sorted(root.iterdir(), key=lambda entry: entry.name, reverse=True):
-        if not path.is_dir():
+    for root, prefix in ((runs_root(), ""), (settings.resolve_path(settings.model_dir), "models~")):
+        if not root.is_dir():
             continue
-        try:
-            directory = run_directory(path.name)
-            if artifact_path(directory, "status.json").is_file():
-                summaries.append(run_summary(directory))
-        except HTTPException:
-            # A malformed or inaccessible run must not hide all other runs.
-            continue
+        for path in sorted(root.iterdir(), key=lambda entry: entry.name, reverse=True):
+            if not path.is_dir():
+                continue
+            try:
+                directory = run_directory(prefix + path.name)
+                if artifact_path(directory, "status.json").is_file():
+                    summaries.append(run_summary(directory))
+            except HTTPException:
+                # A malformed or inaccessible run must not hide all other runs.
+                continue
     return summaries[offset:offset + limit]
 
 
@@ -58,6 +60,8 @@ def get_run(run_id: str, _user: User = Depends(current_user)):
     directory = run_directory(run_id)
     if not artifact_path(directory, "status.json").is_file():
         raise HTTPException(404, "Experiment run not found")
+    if run_id.startswith("models~"):
+        return architecture_details(directory, run_id)
     return {"id": run_id, **{key: read_artifact(directory, key) for key in ARTIFACTS}}
 
 
