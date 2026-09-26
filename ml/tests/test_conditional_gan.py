@@ -113,6 +113,39 @@ def test_augmentation_is_capped_for_rare_classes():
     }
 
 
+def test_gan_interrupted_resume_matches_uninterrupted_training(tmp_path, monkeypatch):
+    from bone_marrow_vision.training import conditional_gan
+    original_threads = torch.get_num_threads()
+    torch.set_num_threads(2)
+    try:
+        real = tmp_path / "real"
+        experiment.prepare_real_splits(source_splits(tmp_path), real)
+        config = {"seed": 42, "epochs": 2, "steps_per_epoch": 1, "batch_size": 2,
+                  "latent_dim": 4, "width": 2, "learning_rate": 0.0002,
+                  "num_workers": 0, "checkpoint_every": 1, "device": "cpu"}
+        full = train_gan(real, tmp_path / "full", config)
+        save = conditional_gan.atomic_torch_save
+
+        def interrupted(payload, path):
+            save(payload, path)
+            if path.name == "latest.pt" and payload["epoch"] == 1:
+                raise RuntimeError("simulated interruption")
+        monkeypatch.setattr(conditional_gan, "atomic_torch_save", interrupted)
+        with pytest.raises(RuntimeError, match="simulated interruption"):
+            train_gan(real, tmp_path / "resumed", config)
+        monkeypatch.setattr(conditional_gan, "atomic_torch_save", save)
+        resumed = train_gan(real, tmp_path / "resumed", config, resume=True)
+        expected = torch.load(full, weights_only=True, map_location="cpu")
+        actual = torch.load(resumed, weights_only=True, map_location="cpu")
+        assert actual["history"] == expected["history"]
+        for model in ("generator", "discriminator"):
+            assert all(torch.equal(value, actual[model][key]) for key, value in expected[model].items())
+        with pytest.raises(ValueError, match="inputs changed"):
+            train_gan(real, tmp_path / "resumed", {**config, "seed": 99}, resume=True)
+    finally:
+        torch.set_num_threads(original_threads)
+
+
 def test_quarantine_excludes_entire_conflicting_group_without_editing_source(tmp_path):
     source = source_splits(tmp_path)
     train_path = source / "train.json"
@@ -148,24 +181,30 @@ def test_runner_matches_classifier_arms_and_records_completion(tmp_path, monkeyp
     events = []
     configs = []
 
-    def fake_gan(real_dir, destination, config):
+    def fake_gan(real_dir, destination, config, *, resume=False):
         assert config["seed"] == 43
+        destination.mkdir()
+        (destination / "latest.pt").write_bytes(b"checkpoint")
         return destination / "latest.pt"
 
-    def fake_generation(checkpoint, real_dir, destination, seed):
+    def fake_generation(checkpoint, real_dir, destination, seed, *, resume=False):
         assert seed == 43
         destination.mkdir()
-        experiment.write_json(destination / "manifest.json", {"seed": seed})
         image_path = destination / "synthetic.png"
         Image.new("RGB", (16, 16), (12, 34, 56)).save(image_path)
-        return [{"path": str(image_path), "label": "A", "is_synthetic": True,
+        rows = [{"path": str(image_path), "label": "A", "is_synthetic": True,
                  "sha256": sha256_file(image_path)}]
+        experiment.write_json(destination / "manifest.json", {"seed": seed, "samples": rows})
+        return rows
 
-    def fake_training(config, data, checkpoint, export_directory):
+    def fake_training(config, data, checkpoint, export_directory, *, resume=False):
         events.append(data.name)
         configs.append(config.read_bytes())
         if fail_training:
             raise RuntimeError("Training interrupted")
+        checkpoint.parent.mkdir(parents=True, exist_ok=True)
+        checkpoint.write_bytes(b"classifier")
+        checkpoint.with_suffix(".history.json").write_text("[]")
 
     def fake_report(command, check):
         assert events[:2] == ["real_splits", "augmented_splits"]
@@ -204,3 +243,14 @@ def test_runner_matches_classifier_arms_and_records_completion(tmp_path, monkeyp
         assert status["stages"][0]["stage"] == "auditing_real_splits"
     assert status["elapsed_seconds"] >= 0
     assert status["started_at"] <= status["updated_at"]
+
+    # The second invocation must reuse GAN generation and both completed classifiers.
+    if not fail_training:
+        experiment.sys.argv.append("--resume")
+        prior_training = list(configs)
+        original_provenance = (output / "provenance.json").read_bytes()
+        experiment.main()
+        assert configs == prior_training
+        assert (output / "provenance.json").read_bytes() == original_provenance
+        assert len(json.loads((output / "resume_provenance.json").read_text())) == 1
+        assert json.loads((output / "status.json").read_text())["stage"] == "completed"

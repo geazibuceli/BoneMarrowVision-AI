@@ -27,6 +27,8 @@ from bone_marrow_vision.data.dataset import BoneMarrowDataset, sha256_file, veri
 from bone_marrow_vision.models import build_model
 from bone_marrow_vision.provenance import build_provenance
 from bone_marrow_vision.training.conditional_gan import generate_samples, train_gan
+from bone_marrow_vision.training.orchestration import StageJournal
+from bone_marrow_vision.training.recovery import recovery_path
 from bone_marrow_vision.training.trainer import validation_metrics
 
 
@@ -50,8 +52,8 @@ def inspect_image(row):
     return {**row, "sha256": digest, "pixel_sha256": pixel_hash, "is_synthetic": False}
 
 
-def write_splits(directory: Path, splits: dict, provenance: dict):
-    directory.mkdir(parents=True, exist_ok=False)
+def write_splits(directory: Path, splits: dict, provenance: dict, *, resume=False):
+    directory.mkdir(parents=True, exist_ok=resume)
     entries = {}
     for name, rows in splits.items():
         path = directory / f"{name}.json"
@@ -66,7 +68,7 @@ def write_splits(directory: Path, splits: dict, provenance: dict):
     verify_split_manifest(directory)
 
 
-def prepare_real_splits(source: Path, destination: Path, *, duplicate_policy="fail"):
+def prepare_real_splits(source: Path, destination: Path, *, duplicate_policy="fail", resume=False):
     """Audit legacy images without replacing or silently reshuffling held-out splits."""
     splits = {}
     groups = defaultdict(list)
@@ -113,7 +115,7 @@ def prepare_real_splits(source: Path, destination: Path, *, duplicate_policy="fa
         name: source / f"{name}.json" for name in splits
     })
     provenance["source_audit_sha256"] = sha256_file(destination.parent / "source_audit.json")
-    write_splits(destination, splits, provenance)
+    write_splits(destination, splits, provenance, resume=resume)
     return splits
 
 
@@ -159,10 +161,12 @@ def evaluate_checkpoint(checkpoint_path: Path, split_path: Path):
             **{key.replace("validation_", "test_"): value for key, value in metrics.items()}}
 
 
-def train_classifier(config_path: Path, splits: Path, checkpoint: Path, output: Path):
+def train_classifier(config_path: Path, splits: Path, checkpoint: Path, output: Path, *, resume=False):
     output.mkdir(parents=True, exist_ok=True)
     command = [sys.executable, "-u", "ml/scripts/train.py", "--config", str(config_path),
                "--data-dir", str(splits), "--checkpoint", str(checkpoint)]
+    if resume and recovery_path(checkpoint).is_file():
+        command.extend(["--resume", str(recovery_path(checkpoint)), "--finalize-completed"])
     with subprocess.Popen(command) as process:
         try:
             while process.poll() is None:
@@ -204,6 +208,7 @@ def main():
     parser.add_argument("--data-dir", default="data/processed")
     parser.add_argument("--output", required=True, help="New directory under ignored local artifacts")
     parser.add_argument("--seed", type=int, help="Override GAN, generation, and both classifier seeds")
+    parser.add_argument("--resume", action="store_true", help="Resume this experiment with unchanged inputs")
     args = parser.parse_args()
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     seed = args.seed if args.seed is not None else config["seed"]
@@ -211,17 +216,27 @@ def main():
     if config["classifier"].get("early_stopping_patience", 0) <= config["classifier"]["epochs"]:
         raise ValueError("Matched comparison requires early stopping patience greater than epochs")
     output = Path(args.output).resolve()
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(parents=True, exist_ok=args.resume)
+    journal = StageJournal(output, {
+        "config": config,
+        "source_splits": {name: sha256_file(Path(args.data_dir) / f"{name}.json")
+                          for name in ("train", "validation", "test")},
+    }, resume=args.resume)
     status_path = output / "status.json"
-    started_at = datetime.now(UTC).isoformat()
+    previous_status = (
+        json.loads(status_path.read_text(encoding="utf-8")) if args.resume and status_path.is_file() else {}
+    )
+    started_at = previous_status.get("started_at", datetime.now(UTC).isoformat())
     started_clock = time.monotonic()
-    stages = []
+    previous_elapsed = previous_status.get("elapsed_seconds", 0)
+    stages = previous_status.get("stages", [])
 
     def status(stage, **fields):
         updated_at = datetime.now(UTC).isoformat()
         stages.append({"stage": stage, "at": updated_at})
         write_json(status_path, {"stage": stage, "started_at": started_at,
-                                "updated_at": updated_at, "elapsed_seconds": time.monotonic() - started_clock,
+                                "updated_at": updated_at,
+                                "elapsed_seconds": previous_elapsed + time.monotonic() - started_clock,
                                 "stages": stages, **fields})
         print(json.dumps({"stage": stage, **fields}), flush=True)
 
@@ -229,39 +244,67 @@ def main():
         if not torch.cuda.is_available():
             raise RuntimeError("This full experiment requires CUDA; use CPU only in unit tests")
         write_json(output / "config.json", config)
-        write_json(output / "provenance.json", build_provenance(config, input_files={
+        provenance = build_provenance(config, input_files={
             "config": args.config, "runner": __file__,
             "gan_code": "ml/src/bone_marrow_vision/training/conditional_gan.py",
             "trainer_code": "ml/src/bone_marrow_vision/training/trainer.py",
-        }))
+        })
+        if args.resume and (output / "provenance.json").is_file():
+            resume_path = output / "resume_provenance.json"
+            attempts = json.loads(resume_path.read_text(encoding="utf-8")) if resume_path.is_file() else []
+            write_json(resume_path, [*attempts, provenance])
+        else:
+            write_json(output / "provenance.json", provenance)
         status("auditing_real_splits")
         real_dir = output / "real_splits"
-        splits = prepare_real_splits(
-            Path(args.data_dir), real_dir, duplicate_policy=config.get("duplicate_policy", "fail")
-        )
+        if journal.completed("audit"):
+            verify_split_manifest(real_dir)
+            splits = {name: json.loads((real_dir / f"{name}.json").read_text(encoding="utf-8"))
+                      for name in ("train", "validation", "test")}
+        else:
+            splits = prepare_real_splits(
+                Path(args.data_dir), real_dir, duplicate_policy=config.get("duplicate_policy", "fail"),
+                resume=args.resume,
+            )
+            journal.finish("audit", [real_dir / f"{name}.json" for name in ("train", "validation", "test", "manifest")])
         counts = dict(Counter(row["label"] for row in splits["train"]))
         write_json(output / "real_class_counts.json", counts)
         status("training_gan", epochs=config["gan"]["epochs"])
-        gan_checkpoint = train_gan(real_dir, output / "gan", config["gan"])
+        gan_checkpoint = output / "gan/latest.pt"
+        if not journal.completed("gan"):
+            gan_checkpoint = train_gan(real_dir, output / "gan", config["gan"], resume=args.resume)
+            journal.finish("gan", [gan_checkpoint])
         status("generating_synthetic_images")
-        synthetic = generate_samples(gan_checkpoint, real_dir, output / "synthetic", config["seed"])
+        if journal.completed("generate"):
+            synthetic = json.loads((output / "synthetic/manifest.json").read_text(encoding="utf-8"))["samples"]
+            if any(not Path(row["path"]).is_file() or sha256_file(row["path"]) != row["sha256"] for row in synthetic):
+                raise ValueError("Generated images changed")
+        else:
+            synthetic = generate_samples(gan_checkpoint, real_dir, output / "synthetic", config["seed"], resume=args.resume)
+            journal.finish("generate", [output / "synthetic/manifest.json"])
         augmented = {**splits, "train": splits["train"] + synthetic}
         augmented_dir = output / "augmented_splits"
-        write_splits(augmented_dir, augmented, {
-            "real_manifest_sha256": sha256_file(real_dir / "manifest.json"),
-            "synthetic_manifest_sha256": sha256_file(output / "synthetic" / "manifest.json"),
-            "morphology_review": "unreviewed_experimental",
-        })
+        if not journal.completed("augment"):
+            write_splits(augmented_dir, augmented, {
+                "real_manifest_sha256": sha256_file(real_dir / "manifest.json"),
+                "synthetic_manifest_sha256": sha256_file(output / "synthetic" / "manifest.json"),
+                "morphology_review": "unreviewed_experimental",
+            }, resume=args.resume)
+            journal.finish("augment", [augmented_dir / f"{name}.json" for name in ("train", "validation", "test", "manifest")])
         verify_matched_holdouts(real_dir, augmented_dir)
         classifier_config = output / "classifier.yaml"
         classifier_config.write_text(yaml.safe_dump(config["classifier"]), encoding="utf-8")
         checkpoint = output / "classifier" / "best.pt"
         control_checkpoint = output / "control" / "best.pt"
         status("training_real_only_control", epochs=config["classifier"]["epochs"], seed=seed)
-        train_classifier(classifier_config, real_dir, control_checkpoint, output / "control")
+        if not journal.completed("control"):
+            train_classifier(classifier_config, real_dir, control_checkpoint, output / "control", resume=args.resume)
+            journal.finish("control", [control_checkpoint, control_checkpoint.with_suffix(".history.json")])
         status("training_classifier", epochs=config["classifier"]["epochs"],
                synthetic_count=len(synthetic))
-        train_classifier(classifier_config, augmented_dir, checkpoint, output)
+        if not journal.completed("classifier"):
+            train_classifier(classifier_config, augmented_dir, checkpoint, output, resume=args.resume)
+            journal.finish("classifier", [checkpoint, checkpoint.with_suffix(".history.json")])
         verify_matched_holdouts(real_dir, augmented_dir)
         status("evaluating_real_test")
         subprocess.run([

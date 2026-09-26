@@ -16,9 +16,11 @@ from torchvision.utils import save_image
 
 from bone_marrow_vision.data.dataset import BoneMarrowDataset, sha256_file, verify_split_manifest
 from bone_marrow_vision.training.checkpoints import atomic_torch_save, clone_state_dict
+from bone_marrow_vision.training.recovery import loader_state, restore_loader
 from bone_marrow_vision.training.reproducibility import (
     capture_rng_state,
     make_generator,
+    restore_rng_state,
     seed_everything,
     seed_worker,
 )
@@ -73,7 +75,7 @@ def augmentation_plan(counts: dict[str, int], target: int) -> dict[str, int]:
     return {label: max(0, min(count, target - count)) for label, count in counts.items()}
 
 
-def train_gan(data_dir: Path, output: Path, config: dict) -> Path:
+def train_gan(data_dir: Path, output: Path, config: dict, *, resume: bool = False) -> Path:
     verify_split_manifest(data_dir)
     seed_everything(config["seed"])
     rows = json.loads((data_dir / "train.json").read_text(encoding="utf-8"))
@@ -104,11 +106,30 @@ def train_gan(data_dir: Path, output: Path, config: dict) -> Path:
     d_optimizer = torch.optim.Adam(
         discriminator.parameters(), lr=config["learning_rate"], betas=(0.0, 0.9)
     )
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(parents=True, exist_ok=resume)
     fixed_labels = torch.arange(len(names), device=device).repeat_interleave(4)
     fixed_noise = torch.randn(len(fixed_labels), config["latent_dim"], device=device)
     history = []
-    for epoch in range(1, config["epochs"] + 1):
+    start_epoch = 1
+    if resume and (output / "latest.pt").is_file():
+        previous = torch.load(output / "latest.pt", map_location="cpu", weights_only=True)
+        if previous.get("recovery_version") != 1:
+            raise ValueError("This GAN checkpoint lacks complete recovery state")
+        if (previous["config"] != config or previous["class_names"] != names
+                or previous["training_split_sha256"] != sha256_file(data_dir / "train.json")
+                or previous["split_manifest_sha256"] != sha256_file(data_dir / "manifest.json")):
+            raise ValueError("GAN recovery inputs changed")
+        generator.load_state_dict(previous["generator"])
+        discriminator.load_state_dict(previous["discriminator"])
+        g_optimizer.load_state_dict(previous["generator_optimizer"])
+        d_optimizer.load_state_dict(previous["discriminator_optimizer"])
+        fixed_noise = previous["fixed_noise"].to(device)
+        fixed_labels = previous["fixed_labels"].to(device)
+        history = previous["history"]
+        start_epoch = previous["epoch"] + 1
+        restore_loader(loader, previous["loader"])
+        restore_rng_state(previous["rng"])
+    for epoch in range(start_epoch, config["epochs"] + 1):
         generator.train()
         discriminator.train()
         g_total = d_total = 0.0
@@ -144,6 +165,8 @@ def train_gan(data_dir: Path, output: Path, config: dict) -> Path:
             save_image((generator(fixed_noise, fixed_labels) + 1) / 2,
                        output / f"preview_{epoch:03d}.png", nrow=4)
         payload = {
+            "recovery_version": 1, "loader": loader_state(loader),
+            "fixed_noise": fixed_noise.detach().cpu(), "fixed_labels": fixed_labels.detach().cpu(),
             "architecture": "conditional_gan_128", "generator": clone_state_dict(generator.state_dict()),
             "discriminator": clone_state_dict(discriminator.state_dict()),
             "generator_optimizer": g_optimizer.state_dict(),
@@ -157,10 +180,11 @@ def train_gan(data_dir: Path, output: Path, config: dict) -> Path:
         if epoch % config["checkpoint_every"] == 0 or epoch == config["epochs"]:
             atomic_torch_save(payload, output / f"epoch_{epoch:03d}.pt")
         (output / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
+    (output / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
     return output / "latest.pt"
 
 
-def generate_samples(checkpoint_path: Path, data_dir: Path, output: Path, seed: int) -> list[dict]:
+def generate_samples(checkpoint_path: Path, data_dir: Path, output: Path, seed: int, *, resume: bool = False) -> list[dict]:
     verify_split_manifest(data_dir)
     checkpoint = torch.load(checkpoint_path, weights_only=True, map_location="cpu")
     if checkpoint["training_split_sha256"] != sha256_file(data_dir / "train.json"):
@@ -175,7 +199,7 @@ def generate_samples(checkpoint_path: Path, data_dir: Path, output: Path, seed: 
     generator = ConditionalGenerator(len(names), config["latent_dim"], config["width"]).to(device)
     generator.load_state_dict(checkpoint["generator"])
     generator.eval()
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(parents=True, exist_ok=resume)
     digest = sha256_file(checkpoint_path)
     samples = []
     real_hashes = {row["sha256"] for row in rows}
