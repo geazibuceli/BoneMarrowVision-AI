@@ -32,6 +32,8 @@ Explainable deep-learning platform for research on multiclass bone-marrow cell i
 
 ![BoneMarrowVision AI system architecture](docs/architecture.svg)
 
+Offline training and evaluation produce checkpoints, metrics, and provenance records. Administrators register compatible checkpoints and explicitly activate a model; the API uses the active registered model for inference and Grad-CAM. Completing a training run does not change the active model.
+
 The application consists of:
 
 - a React web interface with authenticated research workspaces;
@@ -47,7 +49,7 @@ The repository includes code, tests, configuration, and selected de-identified r
 
 The recorded 40-epoch experiment is historical: it predates the current strict split-manifest and artifact-provenance implementation. Its aggregate metrics are retained for reference, but a new end-to-end run through the current pipeline is required before claiming complete computational reproducibility. Patient-level independence also cannot be established from the downloaded file layout because no patient, slide, case, or source mapping was available to this project.
 
-A separate matched ResNet-50 and EfficientNet-B0 comparison completed training, evaluation, and analysis on September 23, 2026, using audited splits and recorded input hashes. Its results are documented below; this does not retroactively establish provenance for the historical run or verify patient-level independence.
+A separate matched ResNet-50 and EfficientNet-B0 comparison completed training, evaluation, and analysis on September 23, 2026, using audited splits and recorded input hashes. ConvNeXt-Tiny completed the same protocol on September 25, 2026, including 100 training epochs, evaluation, and analysis. Results for all three models are documented below; this does not retroactively establish provenance for the historical run or verify patient-level independence.
 
 ## Requirements
 
@@ -167,28 +169,34 @@ python ml/scripts/generate_gradcam.py \
 
 Training writes a best checkpoint and a separate final checkpoint. Evaluation and analysis record hashes for the inputs and generated artifacts. CUDA is detected automatically; mixed precision is enabled only on CUDA.
 
+New classifier runs also save a rolling recovery checkpoint after every epoch.
+See [training recovery](docs/training-recovery.md) for `--resume`, compatibility
+checks, and the distinction between classifier recovery and orchestration.
+
 For the experimental conditional GAN augmentation pipeline and a 50-epoch classifier
 run with per-epoch checkpoints and learning curves, see the
 [conditional GAN experiment guide](docs/conditional-gan-experiment.md).
 
 ## Completed architecture comparison
 
-ResNet-50 and EfficientNet-B0 were trained from ImageNet weights with the same configuration except for architecture: seed 42, 224 x 224 inputs, batch size 32, AdamW learning rate 0.0003, weighted cross-entropy, and a maximum of 100 epochs. The best checkpoint was selected using validation macro-F1.
+ResNet-50, EfficientNet-B0, and ConvNeXt-Tiny were trained from ImageNet weights with the same configuration except for architecture: seed 42, 224 x 224 inputs, batch size 32, AdamW learning rate 0.0003, weighted cross-entropy, and a maximum of 100 epochs. The best checkpoint was selected using validation macro-F1.
 
-The audited comparison contains 119,947 training, 25,701 validation, and 25,703 test images across 21 classes. Two byte-identical validation images with conflicting labels were excluded from a separate copy; train and test membership stayed unchanged. Both evaluations used the same test split hash and class vocabulary.
+The audited comparison contains 119,947 training, 25,701 validation, and 25,703 test images across 21 classes. Two byte-identical validation images with conflicting labels were excluded from a separate copy; train and test membership stayed unchanged. All three evaluations used the same test split hash and class vocabulary.
 
-| Metric | ResNet-50 | EfficientNet-B0 |
-| --- | ---: | ---: |
-| Accuracy | 85.95% | 86.49% |
-| Balanced accuracy | 72.05% | 72.48% |
-| Macro F1 | 71.56% | 73.11% |
+| Metric | ResNet-50 | EfficientNet-B0 | ConvNeXt-Tiny |
+| --- | ---: | ---: | ---: |
+| Accuracy | 85.95% | 86.49% | 85.81% |
+| Balanced accuracy | 72.05% | 72.48% | 66.18% |
+| Macro F1 | 71.56% | 73.11% | 68.30% |
+
+ConvNeXt-Tiny was restarted from ImageNet weights and completed 100 epochs. Its selected checkpoint is from epoch 28 (validation macro-F1 71.33%); the table reports the selected checkpoint's test metrics. EfficientNet-B0 achieved the highest test macro-F1. See the [ConvNeXt run record](docs/convnext-comparison.md) and [aggregate evidence](reports/architecture_comparison_2026-09-25.json).
 
 These are single-seed, image-level results. Patient/slide isolation remains unverified, and repeated seeds are needed to assess training variability. Offline evaluation does not activate a model in the application.
 
-To repeat this two-model protocol after preparing the audited comparison splits, choose a new output directory:
+To repeat this three-model protocol after preparing the audited comparison splits, choose a new output directory:
 
 ```bash
-python ml/scripts/run_architecture_comparison.py --architectures resnet50 efficientnet_b0 --full --output-dir models/resnet50_efficientnet_b0_comparison_new
+python ml/scripts/run_architecture_comparison.py --architectures resnet50 efficientnet_b0 convnext_tiny --full --output-dir models/three_architecture_comparison_new
 ```
 
 See the [comparison and split-audit guide](docs/resnet50-comparison.md) for preparation steps and completed integration checks, and [MODEL_CARD.md](MODEL_CARD.md) for the full metric table and limitations.
@@ -225,7 +233,14 @@ The backend image installs the CPU PyTorch build. GPU dependencies belong in the
 
 This is a production-like local stack, not a public production deployment. Read [SECURITY.md](SECURITY.md) before exposing any service.
 
+Use the [backup recovery procedure](docs/backup-recovery.md) to snapshot the local
+application and verify database, media, and registered model recovery in isolation.
+
 ## Validation
+
+See the [September 25 project review](docs/project-review-2026-09-25.md) for the
+completed cross-layer checks, ConvNeXt registration/inference correction, current
+deployment state, and prioritized remaining work.
 
 Run the complete local gate:
 
