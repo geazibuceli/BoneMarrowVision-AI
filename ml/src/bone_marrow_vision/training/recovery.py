@@ -42,7 +42,7 @@ def restore_loader(loader, state: dict) -> None:
             owner.generator.set_state(state["generators"][name])
 
 
-def validated_recovery(path, config, class_names, provenance, device) -> dict:
+def validated_recovery(path, config, class_names, provenance, device, *, finalize_completed=False) -> dict:
     checkpoint = load_checkpoint(path)
     if checkpoint.get("recovery_version") != 1:
         raise ValueError("Resume requires a new .latest.pt recovery checkpoint; legacy checkpoints are inference-only")
@@ -65,8 +65,8 @@ def validated_recovery(path, config, class_names, provenance, device) -> dict:
     epoch = checkpoint["epoch"]
     if not checkpoint["history"] or [r["epoch"] for r in checkpoint["history"]] != list(range(1, epoch + 1)):
         raise ValueError("Resume checkpoint history is inconsistent")
-    if int(config["epochs"]) <= epoch:
+    if int(config["epochs"]) < epoch or (int(config["epochs"]) == epoch and not finalize_completed):
         raise ValueError("Target epochs must exceed the last completed epoch")
-    if state["stale_epochs"] >= int(config.get("early_stopping_patience", 5)):
+    if state["stale_epochs"] >= int(config.get("early_stopping_patience", 5)) and not finalize_completed:
         raise ValueError("This run already reached early stopping")
     return checkpoint

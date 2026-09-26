@@ -33,6 +33,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint", default="models/best_model.pt")
     parser.add_argument("--epochs", type=int, default=None)
     parser.add_argument("--resume", help="Resume from this run's .latest.pt checkpoint; epochs is the total target.")
+    parser.add_argument("--finalize-completed", action="store_true",
+                        help="Allow resume to rebuild final artifacts when training already finished")
     parser.add_argument(
         "--allow-unverified-splits",
         action="store_true",
@@ -150,6 +152,7 @@ def main() -> None:
         class_names,
         provenance=provenance,
         resume=args.resume,
+        finalize_completed=args.finalize_completed,
     )
     print(
         json.dumps(

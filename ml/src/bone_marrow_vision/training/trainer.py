@@ -121,6 +121,7 @@ def train_model(
     *,
     provenance: dict[str, Any] | None = None,
     resume: str | Path | None = None,
+    finalize_completed: bool = False,
 ) -> list[dict[str, Any]]:
     """Train and write distinct, self-describing best and final checkpoints."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -153,7 +154,8 @@ def train_model(
     best_checkpoint: dict[str, Any] | None = None
     start_epoch = 0
     if resume is not None:
-        restored = validated_recovery(resume, config, class_names, provenance, device)
+        restored = validated_recovery(resume, config, class_names, provenance, device,
+                                      finalize_completed=finalize_completed)
         state = restored["training_state"]
         recovery = restored["recovery"]
         restore_loader(train_loader, recovery["train_loader"])
@@ -172,6 +174,8 @@ def train_model(
         print(f"Resuming after completed epoch {start_epoch}", flush=True)
 
     for epoch in range(start_epoch, int(config["epochs"])):
+        if stale_epochs >= int(config.get("early_stopping_patience", 5)):
+            break
         model.train()
         train_loss = 0.0
         train_correct = 0

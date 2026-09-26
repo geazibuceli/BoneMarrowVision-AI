@@ -106,3 +106,20 @@ def test_recovery_rejects_incompatible_state_without_overwriting(tmp_path, monke
     with pytest.raises(ValueError):
         train_model(model, train, valid, config, output, classes, provenance=provenance, resume=resume)
     assert output.read_bytes() == before
+
+
+def test_pipeline_can_finalize_last_epoch_without_retraining(tmp_path, monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    model, train, valid, config, provenance = setup_run()
+    config["epochs"] = 1
+    output = tmp_path / "finished.pt"
+    train_model(model, train, valid, config, output, ["A", "B"], provenance=provenance)
+    expected = load_checkpoint(output)
+    output.unlink()
+    model, train, valid, _, _ = setup_run()
+    history = train_model(model, train, valid, config, output, ["A", "B"], provenance=provenance,
+                          resume=recovery_path(output), finalize_completed=True)
+    assert len(history) == 1
+    actual = load_checkpoint(output)
+    assert actual["history"] == expected["history"]
+    assert all(torch.equal(value, actual["model_state"][key]) for key, value in expected["model_state"].items())
