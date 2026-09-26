@@ -13,6 +13,7 @@ prepare:
 	python ml/scripts/prepare_data.py --config ml/configs/efficientnet_b0.yaml
 
 test:
+	$(PYTHON) -m pytest scripts/tests
 	cd ml && $(PYTHON) -m pytest tests
 	cd backend && $(PYTHON) -m pytest tests
 	cd frontend && npm test
