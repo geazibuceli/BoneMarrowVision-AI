@@ -1,0 +1,625 @@
+{
+  "description": "Matched single-seed image-level evaluation; patient/slide isolation is unverified.",
+  "test_images": 25703,
+  "class_names": [
+    "ABE",
+    "ART",
+    "BAS",
+    "BLA",
+    "EBO",
+    "EOS",
+    "FGC",
+    "HAC",
+    "KSC",
+    "LYI",
+    "LYT",
+    "MMZ",
+    "MON",
+    "MYB",
+    "NGB",
+    "NGS",
+    "NIF",
+    "OTH",
+    "PEB",
+    "PLM",
+    "PMO"
+  ],
+  "models": [
+    {
+      "architecture": "resnet50",
+      "run_directory": "models/architecture_comparison_seed42_run2",
+      "completed_at_utc": "2026-09-23T05:58:48.478026+00:00",
+      "source_report_sha256": "963ddf470b7e15bd3f622c78490df9da6db2b476e4bbb3937094167787455ed3",
+      "checkpoint": {
+        "path": "models/architecture_comparison_seed42_run2/resnet50/best.pt",
+        "sha256": "1ce4975478d7dfd8c2682b714f9eefa62a26a611bf3b1b0cc95e5afa3e2df82b"
+      },
+      "input_hashes": {
+        "split_manifest_sha256": "419f600afb8bde31551418f7238c27057c619a63077a0869cf9c59de30a42628",
+        "split_hashes": {
+          "train": "be999e97dfa271efbd4785aee8e97885528b2ea4191b00f79b626c84303bdc7b",
+          "validation": "958d390c307ef64d488113668a7f82bfe949b961101c8ff12094442449dd1523",
+          "test": "f84457c9f582731b288f1100705c57d87bf7f5db92524b63067da0989f27a264"
+        },
+        "config_hashes": {
+          "resnet50": "07925108d76714e57603eb8cb5cd8c611e7730c9035c663271710e85fc16d0c3",
+          "efficientnet_b0": "a95768e8d8c2c9b8076439cc73247c659129ef873c01b83b8ff69ec1b4873de5"
+        }
+      },
+      "config": {
+        "seed": 42,
+        "deterministic": true,
+        "image_size": 224,
+        "batch_size": 32,
+        "epochs": 100,
+        "learning_rate": 0.0003,
+        "weight_decay": 0.0001,
+        "num_workers": 2,
+        "architecture": "resnet50",
+        "pretrained": true,
+        "class_strategy": "weighted_cross_entropy",
+        "early_stopping_patience": 100,
+        "low_confidence_threshold": 0.6,
+        "validation_size": 0.15,
+        "test_size": 0.15,
+        "duplicate_policy": "fail"
+      },
+      "best_validation_epoch": 24,
+      "best_validation_macro_f1": 0.7124570796186286,
+      "metrics": {
+        "accuracy": 0.8595494689335875,
+        "balanced_accuracy": 0.7204514126745735,
+        "macro_precision": 0.7278397660438386,
+        "macro_recall": 0.7204514126745735,
+        "macro_f1": 0.7155751597456097,
+        "weighted_f1": 0.8601855561392104
+      },
+      "per_class": [
+        {
+          "class_name": "ABE",
+          "support": 1,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        {
+          "class_name": "ART",
+          "support": 2945,
+          "precision": 0.9044722719141324,
+          "recall": 0.8584040747028863,
+          "f1": 0.880836236933798
+        },
+        {
+          "class_name": "BAS",
+          "support": 66,
+          "precision": 0.6029411764705882,
+          "recall": 0.6212121212121212,
+          "f1": 0.6119402985074627
+        },
+        {
+          "class_name": "BLA",
+          "support": 1796,
+          "precision": 0.8360091743119266,
+          "recall": 0.811804008908686,
+          "f1": 0.8237288135593219
+        },
+        {
+          "class_name": "EBO",
+          "support": 4106,
+          "precision": 0.9486673247778875,
+          "recall": 0.9361909400876766,
+          "f1": 0.9423878401569012
+        },
+        {
+          "class_name": "EOS",
+          "support": 883,
+          "precision": 0.969732246798603,
+          "recall": 0.9433748584371461,
+          "f1": 0.9563719862227325
+        },
+        {
+          "class_name": "FGC",
+          "support": 7,
+          "precision": 0.625,
+          "recall": 0.7142857142857143,
+          "f1": 0.6666666666666666
+        },
+        {
+          "class_name": "HAC",
+          "support": 61,
+          "precision": 0.746268656716418,
+          "recall": 0.819672131147541,
+          "f1": 0.7812500000000001
+        },
+        {
+          "class_name": "KSC",
+          "support": 6,
+          "precision": 0.8571428571428571,
+          "recall": 1.0,
+          "f1": 0.923076923076923
+        },
+        {
+          "class_name": "LYI",
+          "support": 10,
+          "precision": 0.5,
+          "recall": 0.1,
+          "f1": 0.16666666666666669
+        },
+        {
+          "class_name": "LYT",
+          "support": 3936,
+          "precision": 0.8940825459970164,
+          "recall": 0.9136178861788617,
+          "f1": 0.9037446594621764
+        },
+        {
+          "class_name": "MMZ",
+          "support": 458,
+          "precision": 0.5912596401028277,
+          "recall": 0.5021834061135371,
+          "f1": 0.5430932703659976
+        },
+        {
+          "class_name": "MON",
+          "support": 606,
+          "precision": 0.6775568181818182,
+          "recall": 0.7871287128712872,
+          "f1": 0.7282442748091604
+        },
+        {
+          "class_name": "MYB",
+          "support": 984,
+          "precision": 0.656021897810219,
+          "recall": 0.7306910569105691,
+          "f1": 0.6913461538461538
+        },
+        {
+          "class_name": "NGB",
+          "support": 1495,
+          "precision": 0.7245817245817245,
+          "recall": 0.7531772575250836,
+          "f1": 0.7386028205969171
+        },
+        {
+          "class_name": "NGS",
+          "support": 4414,
+          "precision": 0.9134375708135055,
+          "recall": 0.9132306298142274,
+          "f1": 0.9133340885918205
+        },
+        {
+          "class_name": "NIF",
+          "support": 531,
+          "precision": 0.5492227979274611,
+          "recall": 0.5988700564971752,
+          "f1": 0.572972972972973
+        },
+        {
+          "class_name": "OTH",
+          "support": 44,
+          "precision": 0.84375,
+          "recall": 0.6136363636363636,
+          "f1": 0.7105263157894737
+        },
+        {
+          "class_name": "PEB",
+          "support": 411,
+          "precision": 0.6845360824742268,
+          "recall": 0.8077858880778589,
+          "f1": 0.7410714285714286
+        },
+        {
+          "class_name": "PLM",
+          "support": 1144,
+          "precision": 0.9106047326906223,
+          "recall": 0.9082167832167832,
+          "f1": 0.9094091903719913
+        },
+        {
+          "class_name": "PMO",
+          "support": 1799,
+          "precision": 0.8493475682087782,
+          "recall": 0.7959977765425236,
+          "f1": 0.8218077474892396
+        }
+      ]
+    },
+    {
+      "architecture": "efficientnet_b0",
+      "run_directory": "models/architecture_comparison_seed42_run2",
+      "completed_at_utc": "2026-09-23T05:58:48.478026+00:00",
+      "source_report_sha256": "394eda6c4301102490caaf3bf04f5320dcbc01980aa6cb82cada9cc36ff36b80",
+      "checkpoint": {
+        "path": "models/architecture_comparison_seed42_run2/efficientnet_b0/best.pt",
+        "sha256": "f86c1c9255cf70d8cd668374fef83ed87f3472c3105e0e4fd05b3859d070aa6a"
+      },
+      "input_hashes": {
+        "split_manifest_sha256": "419f600afb8bde31551418f7238c27057c619a63077a0869cf9c59de30a42628",
+        "split_hashes": {
+          "train": "be999e97dfa271efbd4785aee8e97885528b2ea4191b00f79b626c84303bdc7b",
+          "validation": "958d390c307ef64d488113668a7f82bfe949b961101c8ff12094442449dd1523",
+          "test": "f84457c9f582731b288f1100705c57d87bf7f5db92524b63067da0989f27a264"
+        },
+        "config_hashes": {
+          "resnet50": "07925108d76714e57603eb8cb5cd8c611e7730c9035c663271710e85fc16d0c3",
+          "efficientnet_b0": "a95768e8d8c2c9b8076439cc73247c659129ef873c01b83b8ff69ec1b4873de5"
+        }
+      },
+      "config": {
+        "seed": 42,
+        "deterministic": true,
+        "image_size": 224,
+        "batch_size": 32,
+        "epochs": 100,
+        "learning_rate": 0.0003,
+        "weight_decay": 0.0001,
+        "num_workers": 2,
+        "architecture": "efficientnet_b0",
+        "pretrained": true,
+        "class_strategy": "weighted_cross_entropy",
+        "early_stopping_patience": 100,
+        "low_confidence_threshold": 0.6,
+        "validation_size": 0.15,
+        "test_size": 0.15,
+        "duplicate_policy": "fail"
+      },
+      "best_validation_epoch": 76,
+      "best_validation_macro_f1": 0.735753256794524,
+      "metrics": {
+        "accuracy": 0.8649184920048243,
+        "balanced_accuracy": 0.7248129701057415,
+        "macro_precision": 0.748018023204634,
+        "macro_recall": 0.7248129701057415,
+        "macro_f1": 0.7311278121730808,
+        "weighted_f1": 0.8645935531406324
+      },
+      "per_class": [
+        {
+          "class_name": "ABE",
+          "support": 1,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        {
+          "class_name": "ART",
+          "support": 2945,
+          "precision": 0.8985355648535565,
+          "recall": 0.8750424448217318,
+          "f1": 0.8866334078788922
+        },
+        {
+          "class_name": "BAS",
+          "support": 66,
+          "precision": 0.7777777777777778,
+          "recall": 0.6363636363636364,
+          "f1": 0.7000000000000001
+        },
+        {
+          "class_name": "BLA",
+          "support": 1796,
+          "precision": 0.8484175458078845,
+          "recall": 0.8507795100222717,
+          "f1": 0.849596886294134
+        },
+        {
+          "class_name": "EBO",
+          "support": 4106,
+          "precision": 0.940990772219524,
+          "recall": 0.9437408670238675,
+          "f1": 0.942363813229572
+        },
+        {
+          "class_name": "EOS",
+          "support": 883,
+          "precision": 0.9671201814058957,
+          "recall": 0.9660249150622876,
+          "f1": 0.96657223796034
+        },
+        {
+          "class_name": "FGC",
+          "support": 7,
+          "precision": 0.8333333333333334,
+          "recall": 0.7142857142857143,
+          "f1": 0.7692307692307692
+        },
+        {
+          "class_name": "HAC",
+          "support": 61,
+          "precision": 0.7361111111111112,
+          "recall": 0.8688524590163934,
+          "f1": 0.7969924812030076
+        },
+        {
+          "class_name": "KSC",
+          "support": 6,
+          "precision": 0.8571428571428571,
+          "recall": 1.0,
+          "f1": 0.923076923076923
+        },
+        {
+          "class_name": "LYI",
+          "support": 10,
+          "precision": 0.3333333333333333,
+          "recall": 0.1,
+          "f1": 0.15384615384615383
+        },
+        {
+          "class_name": "LYT",
+          "support": 3936,
+          "precision": 0.9035750251762337,
+          "recall": 0.911839430894309,
+          "f1": 0.9076884167931208
+        },
+        {
+          "class_name": "MMZ",
+          "support": 458,
+          "precision": 0.5260770975056689,
+          "recall": 0.5065502183406113,
+          "f1": 0.5161290322580645
+        },
+        {
+          "class_name": "MON",
+          "support": 606,
+          "precision": 0.7326732673267327,
+          "recall": 0.7326732673267327,
+          "f1": 0.7326732673267327
+        },
+        {
+          "class_name": "MYB",
+          "support": 984,
+          "precision": 0.6681695220919748,
+          "recall": 0.7530487804878049,
+          "f1": 0.7080745341614907
+        },
+        {
+          "class_name": "NGB",
+          "support": 1495,
+          "precision": 0.7281947261663286,
+          "recall": 0.7204013377926421,
+          "f1": 0.7242770679219905
+        },
+        {
+          "class_name": "NGS",
+          "support": 4414,
+          "precision": 0.8973736482012801,
+          "recall": 0.9211599456275487,
+          "f1": 0.9091112353269983
+        },
+        {
+          "class_name": "NIF",
+          "support": 531,
+          "precision": 0.63125,
+          "recall": 0.5706214689265536,
+          "f1": 0.5994065281899109
+        },
+        {
+          "class_name": "OTH",
+          "support": 44,
+          "precision": 0.90625,
+          "recall": 0.6590909090909091,
+          "f1": 0.763157894736842
+        },
+        {
+          "class_name": "PEB",
+          "support": 411,
+          "precision": 0.7321016166281755,
+          "recall": 0.7712895377128953,
+          "f1": 0.7511848341232227
+        },
+        {
+          "class_name": "PLM",
+          "support": 1144,
+          "precision": 0.9323843416370107,
+          "recall": 0.916083916083916,
+          "f1": 0.9241622574955907
+        },
+        {
+          "class_name": "PMO",
+          "support": 1799,
+          "precision": 0.857566765578635,
+          "recall": 0.8032240133407449,
+          "f1": 0.8295063145809415
+        }
+      ]
+    },
+    {
+      "architecture": "convnext_tiny",
+      "run_directory": "models/convnext_tiny_seed42_restart_20260924_214637",
+      "completed_at_utc": "2026-09-25T05:29:50.406802+00:00",
+      "source_report_sha256": "d6ac40a88138b8afd3d2768f407dd7a38cef96f1f444d199ecdd254cee04606c",
+      "checkpoint": {
+        "path": "models/convnext_tiny_seed42_restart_20260924_214637/convnext_tiny/best.pt",
+        "sha256": "bb732a7e7b40f00c93102b238ce647386d1ce0464b628d6efb046305ed64cfc7"
+      },
+      "input_hashes": {
+        "split_manifest_sha256": "419f600afb8bde31551418f7238c27057c619a63077a0869cf9c59de30a42628",
+        "split_hashes": {
+          "train": "be999e97dfa271efbd4785aee8e97885528b2ea4191b00f79b626c84303bdc7b",
+          "validation": "958d390c307ef64d488113668a7f82bfe949b961101c8ff12094442449dd1523",
+          "test": "f84457c9f582731b288f1100705c57d87bf7f5db92524b63067da0989f27a264"
+        },
+        "config_hashes": {
+          "convnext_tiny": "7c8c8454f22c5d622fb9ac5331d2d39d8bd36d3eb911aaf9fd9830bce5254bec"
+        }
+      },
+      "config": {
+        "seed": 42,
+        "deterministic": true,
+        "image_size": 224,
+        "batch_size": 32,
+        "epochs": 100,
+        "learning_rate": 0.0003,
+        "weight_decay": 0.0001,
+        "num_workers": 2,
+        "architecture": "convnext_tiny",
+        "pretrained": true,
+        "class_strategy": "weighted_cross_entropy",
+        "early_stopping_patience": 100,
+        "low_confidence_threshold": 0.6,
+        "validation_size": 0.15,
+        "test_size": 0.15,
+        "duplicate_policy": "fail"
+      },
+      "best_validation_epoch": 28,
+      "best_validation_macro_f1": 0.7132513904320664,
+      "metrics": {
+        "accuracy": 0.8581099482550675,
+        "balanced_accuracy": 0.66178764111196,
+        "macro_precision": 0.7242824147258441,
+        "macro_recall": 0.66178764111196,
+        "macro_f1": 0.6829812491658539,
+        "weighted_f1": 0.8582585168727122
+      },
+      "per_class": [
+        {
+          "class_name": "ABE",
+          "support": 1,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        {
+          "class_name": "ART",
+          "support": 2945,
+          "precision": 0.884998283556471,
+          "recall": 0.8753820033955857,
+          "f1": 0.8801638784568111
+        },
+        {
+          "class_name": "BAS",
+          "support": 66,
+          "precision": 0.7755102040816326,
+          "recall": 0.5757575757575758,
+          "f1": 0.6608695652173914
+        },
+        {
+          "class_name": "BLA",
+          "support": 1796,
+          "precision": 0.8439838802533103,
+          "recall": 0.8162583518930958,
+          "f1": 0.8298896122275686
+        },
+        {
+          "class_name": "EBO",
+          "support": 4106,
+          "precision": 0.9409764391547243,
+          "recall": 0.9434973209936678,
+          "f1": 0.942235193968138
+        },
+        {
+          "class_name": "EOS",
+          "support": 883,
+          "precision": 0.9626274065685164,
+          "recall": 0.9626274065685164,
+          "f1": 0.9626274065685164
+        },
+        {
+          "class_name": "FGC",
+          "support": 7,
+          "precision": 1.0,
+          "recall": 0.42857142857142855,
+          "f1": 0.6
+        },
+        {
+          "class_name": "HAC",
+          "support": 61,
+          "precision": 0.7241379310344828,
+          "recall": 0.6885245901639344,
+          "f1": 0.7058823529411765
+        },
+        {
+          "class_name": "KSC",
+          "support": 6,
+          "precision": 0.6,
+          "recall": 0.5,
+          "f1": 0.5454545454545454
+        },
+        {
+          "class_name": "LYI",
+          "support": 10,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        {
+          "class_name": "LYT",
+          "support": 3936,
+          "precision": 0.8796680497925311,
+          "recall": 0.915650406504065,
+          "f1": 0.897298643097224
+        },
+        {
+          "class_name": "MMZ",
+          "support": 458,
+          "precision": 0.5571776155717761,
+          "recall": 0.5,
+          "f1": 0.5270425776754891
+        },
+        {
+          "class_name": "MON",
+          "support": 606,
+          "precision": 0.7773722627737226,
+          "recall": 0.7029702970297029,
+          "f1": 0.7383015597920277
+        },
+        {
+          "class_name": "MYB",
+          "support": 984,
+          "precision": 0.6570931244560487,
+          "recall": 0.7672764227642277,
+          "f1": 0.7079231129864041
+        },
+        {
+          "class_name": "NGB",
+          "support": 1495,
+          "precision": 0.6630611141157382,
+          "recall": 0.820066889632107,
+          "f1": 0.7332535885167464
+        },
+        {
+          "class_name": "NGS",
+          "support": 4414,
+          "precision": 0.9354296687469995,
+          "recall": 0.8828726778432261,
+          "f1": 0.9083916083916085
+        },
+        {
+          "class_name": "NIF",
+          "support": 531,
+          "precision": 0.5858369098712446,
+          "recall": 0.5141242937853108,
+          "f1": 0.5476429287863591
+        },
+        {
+          "class_name": "OTH",
+          "support": 44,
+          "precision": 0.92,
+          "recall": 0.5227272727272727,
+          "f1": 0.6666666666666666
+        },
+        {
+          "class_name": "PEB",
+          "support": 411,
+          "precision": 0.7403189066059226,
+          "recall": 0.7907542579075426,
+          "f1": 0.7647058823529412
+        },
+        {
+          "class_name": "PLM",
+          "support": 1144,
+          "precision": 0.9053819444444444,
+          "recall": 0.9117132867132867,
+          "f1": 0.9085365853658537
+        },
+        {
+          "class_name": "PMO",
+          "support": 1799,
+          "precision": 0.8563569682151589,
+          "recall": 0.7787659811006115,
+          "f1": 0.8157205240174673
+        }
+      ]
+    }
+  ]
+}
