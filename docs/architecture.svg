@@ -1,31 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
-  <title id="title">BoneMarrowVision AI system architecture</title>
-  <desc id="desc">React frontend connects to a FastAPI backend, PostgreSQL, PyTorch inference, authenticated Grad-CAM outputs, provenance manifests, and the dataset workflow.</desc>
-  <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#d2603d"/></marker>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#17211f" flood-opacity=".12"/></filter>
-  </defs>
-  <rect width="1200" height="720" fill="#f4f1ea"/>
-  <text x="70" y="72" font-family="Manrope,Arial,sans-serif" font-size="30" font-weight="800" fill="#17211f">BoneMarrowVision AI</text>
-  <text x="70" y="104" font-family="DM Mono,monospace" font-size="14" fill="#d2603d">RESEARCH PLATFORM ARCHITECTURE</text>
-  <g font-family="Manrope,Arial,sans-serif" filter="url(#shadow)">
-    <rect x="70" y="185" width="220" height="120" rx="8" fill="#17211f"/>
-    <text x="180" y="232" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">React dashboard</text><text x="180" y="260" text-anchor="middle" font-size="14" fill="#d9e0d9">Upload and analysis UI</text>
-    <rect x="400" y="155" width="300" height="180" rx="8" fill="#d2603d"/>
-    <text x="550" y="205" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">FastAPI REST API</text><text x="550" y="238" text-anchor="middle" font-size="14" fill="#fff">Authentication and uploads</text><text x="550" y="265" text-anchor="middle" font-size="14" fill="#fff">Predictions and analytics</text><text x="550" y="292" text-anchor="middle" font-size="14" fill="#fff">Model registry</text>
-    <rect x="810" y="115" width="300" height="120" rx="8" fill="#7b8d80"/>
-    <text x="960" y="162" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">PostgreSQL</text><text x="960" y="190" text-anchor="middle" font-size="14" fill="#eef2ed">Users, models, experiments</text><text x="960" y="212" text-anchor="middle" font-size="14" fill="#eef2ed">Predictions and ownership</text>
-    <rect x="810" y="285" width="300" height="120" rx="8" fill="#fff" stroke="#7b8d80" stroke-width="3"/>
-    <text x="960" y="332" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">PyTorch inference</text><text x="960" y="360" text-anchor="middle" font-size="14" fill="#58615d">Active model checkpoint</text><text x="960" y="382" text-anchor="middle" font-size="14" fill="#58615d">Confidence and top-3 output</text>
-    <rect x="400" y="450" width="300" height="120" rx="8" fill="#fff" stroke="#d2603d" stroke-width="3"/>
-    <text x="550" y="497" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Grad-CAM reports</text><text x="550" y="525" text-anchor="middle" font-size="14" fill="#58615d">Heatmaps and overlays</text><text x="550" y="547" text-anchor="middle" font-size="14" fill="#58615d">Interpretability aid only</text>
-    <rect x="70" y="450" width="220" height="120" rx="8" fill="#fff" stroke="#17211f" stroke-width="3"/>
-    <text x="180" y="497" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Dataset workflow</text><text x="180" y="525" text-anchor="middle" font-size="14" fill="#58615d">Inspect and split</text><text x="180" y="547" text-anchor="middle" font-size="14" fill="#58615d">Train and evaluate</text>
-    <rect x="810" y="475" width="300" height="120" rx="8" fill="#fff" stroke="#17211f" stroke-width="3"/>
-    <text x="960" y="522" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Provenance manifests</text><text x="960" y="550" text-anchor="middle" font-size="14" fill="#58615d">Hashes, configs, split metadata</text><text x="960" y="572" text-anchor="middle" font-size="14" fill="#58615d">Auditable model artifacts</text>
-  </g>
-  <g fill="none" stroke="#d2603d" stroke-width="3" marker-end="url(#arrow)">
-    <path d="M290 245 H400"/><path d="M700 210 H810"/><path d="M700 285 H810"/><path d="M550 335 V450"/><path d="M400 510 H290"/><path d="M700 510 H810"/>
-  </g>
-  <text x="70" y="655" font-family="DM Mono,monospace" font-size="13" fill="#58615d">Research and educational use only. No clinical decision support.</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="920" viewBox="0 0 1200 920" role="img" aria-labelledby="title desc">
+<title id="title">BoneMarrowVision AI system architecture</title>
+<desc id="desc">React calls FastAPI for authenticated analysis and model administration. PostgreSQL stores users, models and predictions. PyTorch uses the active registered model and generates Grad-CAM outputs. A separate offline workflow audits splits, trains and evaluates models, and produces artifacts. Administrators explicitly register and activate compatible models; training does not activate them automatically.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#a4472b"/></marker></defs>
+<rect width="1200" height="920" fill="#f4f1ea"/>
+<g font-family="Arial,sans-serif" fill="#17211f">
+<text x="60" y="64" font-size="30" font-weight="700">BoneMarrowVision AI</text>
+<text x="60" y="95" font-family="monospace" font-size="14" fill="#a4472b">SYSTEM ARCHITECTURE</text>
+<rect x="30" y="120" width="1140" height="470" rx="12" fill="#fff" stroke="#d9ded7"/>
+<text x="60" y="154" font-size="15" font-weight="700">APPLICATION / INFERENCE</text>
+<rect x="30" y="620" width="1140" height="230" rx="12" fill="#e8ece5" stroke="#7b8d80" stroke-dasharray="6 5"/>
+<text x="60" y="653" font-size="15" font-weight="700">OFFLINE TRAINING / EVALUATION</text>
+<rect x="60" y="190" width="320" height="120" rx="8" fill="#17211f" stroke="#7b8d80"/>
+<text x="220" y="229" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">React dashboard</text>
+<text x="220" y="260" text-anchor="middle" font-size="14" font-weight="400" fill="#fff">Uploads, analysis, prediction history</text>
+<text x="220" y="285" text-anchor="middle" font-size="14" font-weight="400" fill="#fff">Model administration for admins</text>
+<rect x="440" y="190" width="320" height="120" rx="8" fill="#a4472b" stroke="#7b8d80"/>
+<text x="600" y="229" text-anchor="middle" font-size="20" font-weight="700" fill="#fff">FastAPI REST API</text>
+<text x="600" y="260" text-anchor="middle" font-size="14" font-weight="400" fill="#fff">Authentication and validated uploads</text>
+<text x="600" y="285" text-anchor="middle" font-size="14" font-weight="400" fill="#fff">User-scoped predictions and artifacts</text>
+<rect x="820" y="190" width="320" height="120" rx="8" fill="#fff" stroke="#7b8d80"/>
+<text x="980" y="229" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">PyTorch classifier</text>
+<text x="980" y="260" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Active registered model</text>
+<text x="980" y="285" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Predicted class and top-3 probabilities</text>
+<rect x="60" y="410" width="320" height="120" rx="8" fill="#fff" stroke="#7b8d80"/>
+<text x="220" y="449" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">PostgreSQL</text>
+<text x="220" y="480" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Users, model versions, activation history</text>
+<text x="220" y="505" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Predictions, model identity, ownership</text>
+<rect x="440" y="410" width="320" height="120" rx="8" fill="#fff" stroke="#7b8d80"/>
+<text x="600" y="449" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Grad-CAM outputs</text>
+<text x="600" y="480" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Heatmaps and overlays</text>
+<text x="600" y="505" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Authenticated delivery through the API</text>
+<rect x="820" y="410" width="320" height="120" rx="8" fill="#fff" stroke="#7b8d80"/>
+<text x="980" y="449" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Model registry</text>
+<text x="980" y="480" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Validated checkpoints and SHA-256</text>
+<text x="980" y="505" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Admin registration and explicit activation</text>
+<rect x="60" y="680" width="320" height="120" rx="8" fill="#fff" stroke="#7b8d80"/>
+<text x="220" y="719" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Dataset workflow</text>
+<text x="220" y="750" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Inspect, audit duplicates, prepare splits</text>
+<text x="220" y="775" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Verified manifests and exclusion records</text>
+<rect x="440" y="680" width="320" height="120" rx="8" fill="#fff" stroke="#7b8d80"/>
+<text x="600" y="719" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Train and evaluate</text>
+<text x="600" y="750" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Validation-based checkpoint selection</text>
+<text x="600" y="775" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Held-out evaluation and comparison</text>
+<rect x="820" y="680" width="320" height="120" rx="8" fill="#fff" stroke="#7b8d80"/>
+<text x="980" y="719" text-anchor="middle" font-size="20" font-weight="700" fill="#17211f">Model artifacts</text>
+<text x="980" y="750" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Checkpoints, configurations, metrics</text>
+<text x="980" y="775" text-anchor="middle" font-size="14" font-weight="400" fill="#58615d">Input hashes and provenance records</text>
+<text x="60" y="830" font-size="13" fill="#58615d">Training produces artifacts; administrators choose which compatible model to register and activate.</text>
+</g>
+<g fill="none" stroke="#a4472b" stroke-width="2" marker-end="url(#arrow)">
+<path d="M380 250 H440"/><path d="M760 230 H820"/>
+<path d="M440 275 H405 V470 H380"/><path d="M760 275 H790 V470 H820"/>
+<path d="M1010 410 V310"/><path d="M950 310 V350 H600 V410"/>
+<path d="M380 740 H440"/><path d="M760 740 H820"/>
+<path d="M980 680 V530" stroke-dasharray="6 5"/>
+</g>
+<g font-family="Arial,sans-serif" font-size="12" fill="#58615d">
+<text x="1020" y="375">Load active</text><text x="635" y="340">Generate overlays</text>
+<rect x="992" y="593" width="153" height="23" rx="4" fill="#f4f1ea"/>
+<text x="1000" y="609">Admin registers via API</text>
+<text x="60" y="890" font-family="monospace" font-size="13">Research and educational use only. No clinical decision support.</text>
+</g></svg>
