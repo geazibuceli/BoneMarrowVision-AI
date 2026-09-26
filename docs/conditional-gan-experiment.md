@@ -94,7 +94,9 @@ Existing historical runs remain readable and are labeled as uncontrolled.
 Missing optional files are expected while training; malformed files produce an error.
 
 The authenticated `/api/v1/experiments/runs` endpoints read only supported report
-files under `data/experiments/<run-id>`. Local runs are shared research records,
+files under `data/experiments/<run-id>`. Architecture-comparison runs under the
+configured model directory are also listed with their own metric and curve view.
+Local runs are shared research records,
 visible to signed-in users like database experiments; they are not user-private
 prediction records. Checkpoints, raw images, and arbitrary filesystem paths are
 not exposed. Compose mounts this directory read-only into the API. Registered
