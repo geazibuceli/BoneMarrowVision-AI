@@ -34,6 +34,8 @@ def test_model_registration_activation_and_restore(application, browser, width):
         page.get_by_label("Password", exact=True).fill(application["password"])
         page.get_by_role("button", name="Sign in", exact=True).click()
         page.get_by_role("link", name="Models", exact=True).click()
+        page.get_by_label("Architecture", exact=True).select_option("convnext_tiny")
+        expect(page.get_by_label("Architecture", exact=True)).to_have_value("convnext_tiny")
         fill_registration("1", "models/fixture.pt")
         page.get_by_label("Metrics (JSON, optional)", exact=True).fill("invalid")
         page.get_by_role("button", name="Register model", exact=True).click()
