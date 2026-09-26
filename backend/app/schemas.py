@@ -72,7 +72,7 @@ class ModelResponse(BaseModel):
     id: int
     name: str
     version: str
-    architecture: Literal["baseline_cnn", "resnet50", "efficientnet_b0"]
+    architecture: Literal["baseline_cnn", "resnet50", "efficientnet_b0", "convnext_tiny"]
     metrics_json: dict[str, Any]
     checkpoint_sha256: str | None = None
     is_active: bool
