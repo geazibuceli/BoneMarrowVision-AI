@@ -18,6 +18,7 @@ from bone_marrow_vision.training import (
     seed_everything,
     seed_worker,
 )
+from bone_marrow_vision.training.recovery import recovery_path
 from bone_marrow_vision.training.trainer import make_sampler, train_model
 
 
@@ -31,6 +32,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--checkpoint", default="models/best_model.pt")
     parser.add_argument("--epochs", type=int, default=None)
+    parser.add_argument("--resume", help="Resume from this run's .latest.pt checkpoint; epochs is the total target.")
     parser.add_argument(
         "--allow-unverified-splits",
         action="store_true",
@@ -51,6 +53,16 @@ def main() -> None:
     args = parse_args()
     config_path = Path(args.config)
     config = load_config(config_path)
+    checkpoint_path = Path(args.checkpoint)
+    if args.resume:
+        if Path(args.resume).resolve() != recovery_path(checkpoint_path).resolve():
+            raise ValueError("--resume must be the .latest.pt file associated with --checkpoint")
+        if args.allow_unverified_splits:
+            raise ValueError("Resume requires verified split manifests")
+    elif any(path.exists() for path in (
+        checkpoint_path, recovery_path(checkpoint_path), final_checkpoint_path(checkpoint_path),
+    )):
+        raise ValueError("Training output already exists; choose a new path or use --resume")
     if args.epochs is not None:
         config["epochs"] = args.epochs
     seed = int(config.get("seed", 42))
@@ -87,7 +99,8 @@ def main() -> None:
         "num_workers": num_workers,
         "pin_memory": torch.cuda.is_available(),
         "worker_init_fn": seed_worker,
-        "persistent_workers": num_workers > 0,
+        # Restart workers at epoch boundaries so their seeds can be recovered.
+        "persistent_workers": False,
     }
     train_sampler = (
         make_sampler(
@@ -125,7 +138,7 @@ def main() -> None:
     model = build_model(
         config["architecture"],
         len(class_names),
-        pretrained=bool(config.get("pretrained", True)),
+        pretrained=bool(config.get("pretrained", True)) and not args.resume,
     )
     checkpoint_path = Path(args.checkpoint)
     history = train_model(
@@ -136,12 +149,14 @@ def main() -> None:
         checkpoint_path,
         class_names,
         provenance=provenance,
+        resume=args.resume,
     )
     print(
         json.dumps(
             {
                 "best_checkpoint": str(checkpoint_path),
                 "final_checkpoint": str(final_checkpoint_path(checkpoint_path)),
+                "recovery_checkpoint": str(recovery_path(checkpoint_path)),
                 "class_names": class_names,
                 "final_history_entry": history[-1] if history else {},
             },
