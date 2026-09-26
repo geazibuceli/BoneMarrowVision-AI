@@ -38,13 +38,34 @@ best training state, and its atomic replacement temporarily requires another
 file of comparable size. Numbered snapshots, best checkpoints, and final
 checkpoints continue to be produced as before. Inference should use `best.pt`.
 
-Architecture-comparison and GAN orchestration do not automatically resume their
-whole sequence. Resume an interrupted classifier with the CLI above, then run
-evaluation and analysis explicitly; an old runner status is not proof of
-completion. GAN generator/discriminator resume remains outside this classifier
-feature. Previously completed September 25 results are unchanged and do not
-gain recovery state retroactively.
+Previously completed September 25 results are unchanged and do not gain recovery state retroactively.
 
-Regression tests interrupt a run during an epoch and compare its resumed
-history and weights with uninterrupted training, including shuffled sampling,
-dropout, random input transforms, worker processes, and balanced sampling.
+## Pipeline recovery
+
+New architecture comparisons and GAN experiments record completed stages in
+`stages.json`. Run the original command with `--resume` and the same output
+directory, inputs, configuration, architecture list, seed, and `--full` setting:
+
+```bash
+python ml/scripts/run_architecture_comparison.py --full --output-dir models/my-comparison --resume
+python ml/scripts/run_gan_experiment.py --output models/my-gan-experiment --resume
+```
+
+Use the original `--data-dir` and other options if they differ from defaults.
+Completed stages are reused only when their recorded output hashes match.
+Changed inputs, missing artifacts, and legacy runs without a stage journal are
+rejected rather than treated as a verified continuation. Run only one process
+per output directory.
+
+Interrupted classifiers resume from their `.latest.pt` checkpoint. Pipelines use
+`--finalize-completed` to reconstruct final artifacts if interrupted after the
+last epoch but before finalization. Evaluation and report generation follow
+automatically. GAN evaluation is repeated on resume; completed training is reused.
+
+New GAN checkpoints also restore generator/discriminator weights, both optimizer
+states, RNG state, sampler/loader generators, fixed preview inputs, and history.
+Recovery starts after the last completed epoch; unfinished epochs repeat. Legacy
+GAN checkpoints lack complete recovery state and cannot be resumed this way.
+Use the same device environment for reproducibility. Synthetic generation may
+repeat after interruption with its fixed seed; existing output belongs to the
+same journal-verified run. Resuming never activates a model in the application.

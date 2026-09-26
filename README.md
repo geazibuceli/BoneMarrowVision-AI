@@ -236,6 +236,25 @@ This is a production-like local stack, not a public production deployment. Read 
 Use the [backup recovery procedure](docs/backup-recovery.md) to snapshot the local
 application and verify database, media, and registered model recovery in isolation.
 
+## Recent product improvements
+
+- Prediction history supports class, model, UTC date range, and confidence filters.
+  CSV export uses the applied filters across all pages (maximum 10,000 rows).
+- Account settings support password changes and optional SMTP recovery with
+  single-use links and session invalidation. See [account recovery](docs/account-recovery.md).
+- Analysis admission is bounded per backend process by `INFERENCE_QUEUE_SIZE`
+  and `INFERENCE_QUEUE_TIMEOUT_SECONDS`. The interface shows current queue load;
+  saturated requests receive a retryable error. Authenticated `/api/v1/predictions/queue`
+  exposes counters and accumulated processing time; logs record wait and processing duration.
+- New architecture and GAN pipelines support `--resume`, including GAN training
+  state and automatic downstream evaluation. See [training recovery](docs/training-recovery.md).
+- Verified snapshots can be sent to an encrypted Restic repository and scheduled
+  on Windows. See [backup setup](docs/backup-recovery.md). SMTP, an external repository,
+  and scheduling require local configuration; they are not enabled automatically.
+
+Existing installations must run `alembic upgrade head` before using the updated
+API. Compose applies migrations at startup. Preserve a verified backup first.
+
 ## Validation
 
 See the [September 25 project review](docs/project-review-2026-09-25.md) for the
