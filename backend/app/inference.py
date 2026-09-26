@@ -17,7 +17,7 @@ from PIL import Image
 from app.core.config import settings
 
 LOGGER = logging.getLogger(__name__)
-SUPPORTED_ARCHITECTURES = {"baseline_cnn", "resnet50", "efficientnet_b0"}
+SUPPORTED_ARCHITECTURES = {"baseline_cnn", "resnet50", "efficientnet_b0", "convnext_tiny"}
 _MODEL_LOAD_LOCK = threading.Lock()
 _INFERENCE_LOCK = threading.Lock()
 
