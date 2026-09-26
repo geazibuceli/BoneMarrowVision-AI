@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import csv
 import logging
 import secrets
 import warnings
-from io import BytesIO
+from datetime import UTC, date, datetime, time, timedelta
+from io import BytesIO, StringIO
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,6 +18,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.audit import add_audit_event
 from app.core.config import settings
+from app.core.inference_queue import inference_admission, inference_queue
 from app.core.rate_limit import enforce_prediction_rate_limit
 from app.database import get_db
 from app.inference import predict
@@ -28,6 +31,31 @@ ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 ALLOWED_TYPES = {"image/png", "image/jpeg"}
 FORMAT_EXTENSIONS = {"PNG": {".png"}, "JPEG": {".jpg", ".jpeg"}}
 LOGGER = logging.getLogger(__name__)
+
+
+def history_filters(
+    predicted_class: str | None = Query(default=None, max_length=160),
+    model_id: int | None = Query(default=None, ge=1),
+    low_confidence: bool | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+):
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(status_code=422, detail="Start date must be on or before end date")
+    conditions = []
+    if predicted_class:
+        conditions.append(Prediction.predicted_class == predicted_class)
+    if model_id is not None:
+        conditions.append(Prediction.model_id == model_id)
+    if low_confidence is not None:
+        conditions.append(Prediction.low_confidence == low_confidence)
+    if date_from:
+        conditions.append(Prediction.created_at >= datetime.combine(date_from, time.min, UTC))
+    if date_to:
+        if date_to == date.max:
+            raise HTTPException(status_code=422, detail="End date is outside the supported range")
+        conditions.append(Prediction.created_at < datetime.combine(date_to + timedelta(days=1), time.min, UTC))
+    return conditions
 
 
 def _prediction_response(prediction: Prediction) -> dict:
@@ -77,6 +105,7 @@ async def create_prediction(
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
     _rate_limit: None = Depends(enforce_prediction_rate_limit),
+    _admission: None = Depends(inference_admission),
 ):
     try:
         extension = Path(file.filename or "").suffix.lower()
@@ -190,15 +219,64 @@ def list_predictions(
     db: Session = Depends(get_db),
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0, le=1_000_000),
+    filters: list = Depends(history_filters),
 ):
     predictions = db.scalars(
         select(Prediction)
-        .where(Prediction.user_id == user.id)
+        .where(Prediction.user_id == user.id, *filters)
         .order_by(Prediction.created_at.desc(), Prediction.id.desc())
         .offset(offset)
         .limit(limit)
     )
     return [_prediction_response(prediction) for prediction in predictions]
+
+
+@router.get("/export")
+def export_predictions(
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+    filters: list = Depends(history_filters),
+):
+    records = db.scalars(
+        select(Prediction).where(Prediction.user_id == user.id, *filters)
+        .order_by(Prediction.created_at.desc(), Prediction.id.desc()).limit(10_001)
+    ).all()
+    if len(records) > 10_000:
+        raise HTTPException(413, "Export is limited to 10,000 rows. Narrow the date range or filters.")
+    output = StringIO(newline="")
+    writer = csv.writer(output)
+    writer.writerow(["id", "class", "confidence", "low_confidence", "model", "version", "created_at_utc"])
+
+    def safe_cell(value: str) -> str:
+        return "'" + value if value.lstrip().startswith(("=", "+", "-", "@", "\t", "\r", "\n")) else value
+
+    for row in records:
+        created = row.created_at
+        created = created.replace(tzinfo=UTC) if created.tzinfo is None else created.astimezone(UTC)
+        writer.writerow([
+            row.id, safe_cell(row.predicted_class), row.confidence, row.low_confidence,
+            safe_cell(row.model.name) if row.model else "",
+            safe_cell(row.model.version) if row.model else "", created.isoformat(),
+        ])
+    return Response(output.getvalue(), media_type="text/csv", headers={
+        "Content-Disposition": 'attachment; filename="predictions.csv"', "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+    })
+
+
+@router.get("/filter-options")
+def filter_options(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    classes = db.scalars(select(Prediction.predicted_class).where(Prediction.user_id == user.id)
+                         .distinct().order_by(Prediction.predicted_class)).all()
+    models = db.execute(select(MLModel.id, MLModel.name, MLModel.version)
+                        .join(Prediction, Prediction.model_id == MLModel.id)
+                        .where(Prediction.user_id == user.id).distinct().order_by(MLModel.name, MLModel.id)).all()
+    return {"classes": classes, "models": [dict(row._mapping) for row in models]}
+
+
+@router.get("/queue")
+def queue_status(_user: User = Depends(current_user)):
+    return inference_queue.snapshot()
 
 
 @router.get("/{prediction_id}/gradcam", response_class=FileResponse)
