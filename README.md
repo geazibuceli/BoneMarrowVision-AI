@@ -214,9 +214,27 @@ The historical EfficientNet-B0 run used 171,353 valid images across 21 classes, 
 | Macro F1 | 73.16% |
 | Weighted F1 | 86.20% |
 
-The relatively lower macro-level metrics must be interpreted in light of the dataset limitations. The model was trained across all 21 class folders, but the historical download was incomplete: some class folders had missing or unreadable images, and the available image counts were uneven across classes. Because macro metrics give each class the same weight, underrepresented categories have a strong effect on macro precision, macro recall, and macro F1, while accuracy and weighted F1 remain more influenced by the better-represented classes. These limitations help explain the gap between the macro F1 and weighted F1 results; they do not establish that missing images were the sole cause of the observed performance.
+This historical run used a different training and validation protocol and should not be ranked as another matched architecture comparison. The limitations below also apply when interpreting its results.
 
 The best recorded validation macro F1 was 72.14% at epoch 30. These are research results, not clinical-performance claims. See [MODEL_CARD.md](MODEL_CARD.md), [DATASET_CARD.md](DATASET_CARD.md), and [reports/README.md](reports/README.md) for their scope and provenance limitations.
+
+## Limitations and future improvements
+
+The current results establish a baseline for the classification of 21 bone marrow cell categories and support further development of the system. In the matched architecture comparison, EfficientNet-B0 achieved the highest observed macro F1, with an overall accuracy of 86.49% and a macro F1 of 73.11%. These metrics highlight both the model's ability to classify many test images correctly and the remaining variation in performance across individual classes. This comparison used a single training seed and does not establish statistical superiority over the other evaluated architectures.
+
+The difference between overall accuracy and macro F1 is particularly relevant because the dataset is highly imbalanced. Overall accuracy gives more influence to classes with more test images, whereas macro F1 assigns equal importance to each class. Consequently, the aggregate accuracy should not be interpreted as equivalent performance across all cell categories. Some classes contain very few test examples, making their individual metrics sensitive to a small number of correct or incorrect predictions. Dataset imbalance and incomplete coverage provide context for these results, but do not establish the sole cause of the observed errors.
+
+Dataset quality and evaluation design also limit the conclusions that can be drawn. The historical download was incomplete and included unreadable images and conflicting labels, as documented in the project's data audit. In addition, the available metadata did not support grouping images by patient or slide. Although the audited splits were checked for exact duplicates, independence between patients or slides could not be established. The reported results therefore describe performance on the available image-level test split; generalization to independent data sources remains unverified.
+
+Future improvements should prioritize:
+
+- **Dataset quality and coverage:** improve dataset completeness, review label consistency, and increase the representation of underrepresented classes.
+- **Targeted error analysis:** examine per-class metrics and confusion patterns to identify recurrent errors and guide subsequent experiments.
+- **Training and reproducibility:** evaluate class-balancing strategies, augmentation, and hyperparameter adjustments through controlled validation experiments, and repeat training with multiple random seeds to assess variability.
+- **Independent evaluation:** use patient- or slide-level splits when suitable metadata becomes available and evaluate the model on external datasets.
+- **Confidence reliability:** assess whether predicted probabilities reflect observed correctness and evaluate calibration methods where necessary.
+
+These directions provide a roadmap for improvement rather than a guarantee of higher performance. Future changes should be selected using validation data and assessed under a clearly documented evaluation protocol, preserving the held-out test set for final evaluation. The current results do not establish suitability for clinical decision-making. See [MODEL_CARD.md](MODEL_CARD.md) and [DATASET_CARD.md](DATASET_CARD.md) for the supporting evaluation and dataset limitations.
 
 ## Containerized local validation
 
