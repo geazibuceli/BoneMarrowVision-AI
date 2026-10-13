@@ -124,6 +124,8 @@ def architecture_details(directory: Path, run_id: str) -> dict:
             config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
             if not isinstance(config, dict) or config.get("architecture") != architecture:
                 raise ValueError("Invalid architecture configuration")
+            if any(isinstance(value, float) and not math.isfinite(value) for value in config.values()):
+                raise ValueError("Configuration contains a non-finite number")
         except (OSError, ValueError, yaml.YAMLError) as error:
             raise HTTPException(503, "Experiment artifact is unavailable or invalid") from error
         configuration = {key: config[key] for key in (
