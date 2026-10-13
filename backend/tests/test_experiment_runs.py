@@ -114,3 +114,18 @@ def test_architecture_paths_cannot_escape_root(name):
     with pytest.raises(HTTPException) as error:
         run_directory(name)
     assert error.value.status_code == 404
+
+
+@pytest.mark.parametrize("value", [".nan", ".inf", "-.inf"])
+def test_non_finite_architecture_configuration_returns_recoverable_error(
+    client, run_headers, workspace_tmp_path, monkeypatch, value,
+):
+    monkeypatch.setattr(settings, "project_root", workspace_tmp_path)
+    monkeypatch.setattr(settings, "model_dir", "models")
+    directory = workspace_tmp_path / "models/invalid-config"
+    directory.mkdir(parents=True)
+    (directory / "status.json").write_text('{"status":"completed"}')
+    (directory / "resnet50.yaml").write_text(f"architecture: resnet50\nlearning_rate: {value}\n")
+    response = client.get("/api/v1/experiments/runs/models~invalid-config", headers=run_headers)
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Experiment artifact is unavailable or invalid"
