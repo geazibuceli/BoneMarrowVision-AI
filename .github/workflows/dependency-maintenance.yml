@@ -1,9 +1,9 @@
 name: Dependency maintenance
 on:
   push:
-    paths: ['requirements/**', 'backend/requirements*.txt', 'ml/pyproject.toml', 'scripts/*requirements.py', '.github/workflows/dependency-maintenance.yml']
+    paths: ['requirements/**', 'backend/requirements*.txt', 'ml/pyproject.toml', 'scripts/**', '.github/workflows/dependency-maintenance.yml']
   pull_request:
-    paths: ['requirements/**', 'backend/requirements*.txt', 'ml/pyproject.toml', 'scripts/*requirements.py', '.github/workflows/dependency-maintenance.yml']
+    paths: ['requirements/**', 'backend/requirements*.txt', 'ml/pyproject.toml', 'scripts/**', '.github/workflows/dependency-maintenance.yml']
   schedule:
     - cron: '23 8 * * 1'
   workflow_dispatch:
